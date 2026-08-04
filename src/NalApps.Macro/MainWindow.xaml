@@ -2,13 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="날라앱스 매크로"
-        Width="456" Height="470"
-        MinWidth="430" MinHeight="430"
-        MaxWidth="560" MaxHeight="650"
+        Width="470" Height="500"
+        MinWidth="450" MinHeight="460"
+        MaxWidth="620" MaxHeight="720"
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource BackgroundBrush}"
         WindowStartupLocation="CenterScreen"
-        SourceInitialized="Advanced_SourceInitialized"
+        SourceInitialized="MainWindow_SourceInitialized"
         Closing="Window_Closing">
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -32,7 +32,7 @@
                     </Border>
                     <StackPanel>
                         <TextBlock Text="날라앱스 매크로" FontSize="15" FontWeight="Bold" />
-                        <TextBlock Text="간단하게 추가하고 바로 실행하세요" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
+                        <TextBlock Text="키보드·마우스·문자·시간 동작을 순서대로 실행합니다" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -47,7 +47,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="8" />
-                <ColumnDefinition Width="108" />
+                <ColumnDefinition Width="116" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource NalaCard}" Padding="10">
@@ -59,11 +59,11 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="실행 순서" FontSize="13" FontWeight="Bold" />
-                            <TextBlock Text="위에서 아래로 실행돼요" FontSize="9" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Text="위에서 아래로 실행됩니다" FontSize="9" Foreground="{StaticResource MutedBrush}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="↑" Style="{StaticResource IconButtonStyle}" Click="MoveUp_Click" />
-                            <Button Content="↓" Style="{StaticResource IconButtonStyle}" Click="MoveDown_Click" />
+                            <Button Content="↑" Style="{StaticResource IconButtonStyle}" Click="MoveUp_Click" ToolTip="위로 이동" />
+                            <Button Content="↓" Style="{StaticResource IconButtonStyle}" Click="MoveDown_Click" ToolTip="아래로 이동" />
                         </StackPanel>
                     </Grid>
                     <ListBox x:Name="StepList"
@@ -74,23 +74,34 @@
                 </DockPanel>
             </Border>
 
-            <StackPanel Grid.Column="2">
-                <Button Content="⌨  키보드" Height="39" Margin="0,0,0,6" Click="AddAdvancedKey_Click" />
-                <Button Content="⌖  마우스" Height="39" Margin="0,0,0,6" Style="{StaticResource PrimaryButtonStyle}" Click="PickPosition_Click" />
-                <Button Content="◷  시간" Height="39" Margin="0,0,0,6" Click="AddAdvancedDelay_Click" />
+            <StackPanel Grid.Column="2" x:Name="ActionPanel">
+                <Button Content="⌨  키보드" Height="39" Margin="0,0,0,6" Click="AddKeyboard_Click" />
+                <Button Content="⌖  마우스" Height="39" Margin="0,0,0,6" Style="{StaticResource PrimaryButtonStyle}" Click="AddMouse_Click" />
+                <Button Content="◷  시간" Height="39" Margin="0,0,0,6" Click="AddDelay_Click" />
                 <Button Content="A  문자" Height="39" Margin="0,0,0,6" Click="AddText_Click" />
-                <Button Content="＋  동작" Height="39" Margin="0,0,0,6">
+                <Button x:Name="ActionMenuButton" Content="＋  동작" Height="39" Margin="0,0,0,6" Click="OpenActionMenu_Click">
                     <Button.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="좌클릭" Click="AddLeftClick_Click" />
-                            <MenuItem Header="우클릭" Click="AddRightClick_Click" />
-                            <MenuItem Header="더블클릭" Click="AddDoubleClick_Click" />
-                            <MenuItem Header="마우스 휠" Click="AddWheel_Click" />
+                            <MenuItem Header="마우스 이동" Tag="move" Click="AddMousePreset_Click" />
+                            <Separator />
+                            <MenuItem Header="왼쪽 클릭" Tag="left" Click="AddMousePreset_Click" />
+                            <MenuItem Header="오른쪽 클릭" Tag="right" Click="AddMousePreset_Click" />
+                            <MenuItem Header="더블 클릭" Tag="double" Click="AddMousePreset_Click" />
+                            <MenuItem Header="연속 왼쪽 클릭" Tag="continuous-left" Click="AddMousePreset_Click" />
+                            <MenuItem Header="연속 오른쪽 클릭" Tag="continuous-right" Click="AddMousePreset_Click" />
+                            <Separator />
+                            <MenuItem Header="휠 위" Tag="wheel-up" Click="AddMousePreset_Click" />
+                            <MenuItem Header="휠 아래" Tag="wheel-down" Click="AddMousePreset_Click" />
+                            <Separator />
+                            <MenuItem Header="키 누르고 있기" Tag="key-hold" Click="AddQuickAction_Click" />
+                            <MenuItem Header="문자 입력" Tag="text" Click="AddQuickAction_Click" />
+                            <MenuItem Header="대기 시간" Tag="delay" Click="AddQuickAction_Click" />
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-                <Button Content="지우기" Height="39" Margin="0,0,0,6" Style="{StaticResource DangerButtonStyle}" Click="DeleteStep_Click" />
-                <Button Content="▶  실행" Height="42" Style="{StaticResource PrimaryButtonStyle}" Click="RunAdvanced_Click" />
+                <Button Content="편집" Height="36" Margin="0,0,0,6" Click="EditSelectedStep_Click" />
+                <Button Content="지우기" Height="36" Margin="0,0,0,6" Style="{StaticResource DangerButtonStyle}" Click="DeleteStep_Click" />
+                <Button Content="▶  실행" Height="42" Style="{StaticResource PrimaryButtonStyle}" Click="Run_Click" />
             </StackPanel>
         </Grid>
 
@@ -114,7 +125,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Expander Header="선택 단계 설정" Margin="0,7,0,0">
+                <Expander Header="선택 단계 빠른 설정" Margin="0,7,0,0">
                     <Grid Margin="0,7,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -170,7 +181,8 @@
 
                         <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
                             <Button Content="위치 테스트" Height="30" Padding="9,4" Click="TestPosition_Click" />
-                            <Button Content="설정 적용" Height="30" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="ApplyStep_Click" />
+                            <Button Content="상세 편집" Height="30" Padding="9,4" Click="EditSelectedStep_Click" />
+                            <Button Content="빠른 설정 적용" Height="30" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="ApplyStep_Click" />
                         </StackPanel>
                     </Grid>
                 </Expander>
@@ -179,7 +191,7 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock x:Name="StatusText" Text="준비됨" FontSize="10" FontWeight="SemiBold" />
-                        <TextBlock x:Name="ProgressText" Text="Ctrl+Alt+F8 위치 · F9 시작 · F10 일시정지 · F12 중지"
+                        <TextBlock x:Name="ProgressText" Text="Ctrl+Alt+F8 위치 · Ctrl+Alt+F9 시작 · Ctrl+Alt+F10 일시정지 · Ctrl+Alt+F12 중지"
                                    FontSize="8.5" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
                     <TextBlock Grid.Column="1" Text="NalaApps UI" FontSize="8.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" />

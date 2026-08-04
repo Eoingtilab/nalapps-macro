@@ -20,25 +20,82 @@ public sealed class MacroStep
     public int Y { get; set; }
     public int Value { get; set; }
     public string Text { get; set; } = string.Empty;
+    public bool HasPosition { get; set; }
+    public int RepeatCount { get; set; } = 1;
+    public int IntervalMilliseconds { get; set; } = 100;
+    public int DurationMilliseconds { get; set; }
 
     public string Summary => Type switch
     {
-        MacroStepType.MouseMove => $"마우스 이동  X {X} / Y {Y}",
-        MacroStepType.LeftClick => "마우스 왼쪽 클릭",
-        MacroStepType.RightClick => "마우스 오른쪽 클릭",
-        MacroStepType.DoubleClick => "마우스 더블 클릭",
-        MacroStepType.MouseWheel => $"마우스 휠  {Value}",
-        MacroStepType.TextInput => $"문자 입력  {Text}",
+        MacroStepType.MouseMove => HasPosition
+            ? $"마우스 이동  X {X} / Y {Y}"
+            : "마우스 이동",
+        MacroStepType.LeftClick => BuildMouseSummary("왼쪽 클릭"),
+        MacroStepType.RightClick => BuildMouseSummary("오른쪽 클릭"),
+        MacroStepType.DoubleClick => BuildMouseSummary("더블 클릭"),
+        MacroStepType.MouseWheel => BuildWheelSummary(),
+        MacroStepType.TextInput => $"문자 입력  {Preview(Text)}",
         MacroStepType.KeyPress => $"키 입력  {Text}",
         MacroStepType.KeyHold => $"키 누르고 있기  {Text} · {Value / 1000d:0.###}초",
         MacroStepType.Delay => $"대기  {Value / 1000d:0.###}초",
         _ => Type.ToString()
     };
+
+    public void NormalizeLegacyDefaults()
+    {
+        if (RepeatCount < 1)
+        {
+            RepeatCount = 1;
+        }
+
+        if (IntervalMilliseconds < 0)
+        {
+            IntervalMilliseconds = 0;
+        }
+
+        if (Type == MacroStepType.MouseMove && !HasPosition && (X != 0 || Y != 0))
+        {
+            HasPosition = true;
+        }
+    }
+
+    private string BuildMouseSummary(string action)
+    {
+        var position = HasPosition ? $" · X {X} / Y {Y}" : " · 현재 위치";
+        if (DurationMilliseconds > 0)
+        {
+            return $"마우스 {action} 연속 · {DurationMilliseconds / 1000d:0.###}초 · {IntervalMilliseconds}ms 간격{position}";
+        }
+
+        if (RepeatCount > 1)
+        {
+            return $"마우스 {action} · {RepeatCount}회 · {IntervalMilliseconds}ms 간격{position}";
+        }
+
+        return $"마우스 {action}{position}";
+    }
+
+    private string BuildWheelSummary()
+    {
+        var direction = Value >= 0 ? "위" : "아래";
+        var position = HasPosition ? $" · X {X} / Y {Y}" : " · 현재 위치";
+        return $"마우스 휠 {direction} · {RepeatCount}회{position}";
+    }
+
+    private static string Preview(string value)
+    {
+        var normalized = (value ?? string.Empty)
+            .Replace("\r", string.Empty, StringComparison.Ordinal)
+            .Replace("\n", " ↵ ", StringComparison.Ordinal)
+            .Replace("\t", " ⇥ ", StringComparison.Ordinal);
+
+        return normalized.Length <= 28 ? normalized : normalized[..28] + "…";
+    }
 }
 
 public sealed class MacroDocument
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
     public string Name { get; set; } = "새 매크로";
     public int RepeatCount { get; set; } = 1;
     public bool InfiniteRepeat { get; set; }
