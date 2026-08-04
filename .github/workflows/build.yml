@@ -4,19 +4,46 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   windows-build:
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet restore src/NalApps.Macro/NalApps.Macro.csproj
-      - run: dotnet build src/NalApps.Macro/NalApps.Macro.csproj -c Release --no-restore
-      - run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64
-      - uses: actions/upload-artifact@v4
+
+      - name: Restore
+        run: dotnet restore src/NalApps.Macro/NalApps.Macro.csproj
+
+      - name: Build
+        run: dotnet build src/NalApps.Macro/NalApps.Macro.csproj -c Release --no-restore -warnaserror
+
+      - name: Publish portable single-file app
+        run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NalApps-Macro-v1.0.0-win-x64
+
+      - name: Create portable ZIP and checksum
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts/NalApps-Macro-v1.0.0-win-x64/* -DestinationPath artifacts/NalApps-Macro-v1.0.0-Portable-win-x64.zip -Force
+          $hash = (Get-FileHash artifacts/NalApps-Macro-v1.0.0-Portable-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  NalApps-Macro-v1.0.0-Portable-win-x64.zip" | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: NalApps-Macro-win-x64
-          path: artifacts/win-x64/
+          name: NalApps-Macro-v1.0.0
+          path: |
+            artifacts/NalApps-Macro-v1.0.0-Portable-win-x64.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
