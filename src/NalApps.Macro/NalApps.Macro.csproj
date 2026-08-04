@@ -11,5 +11,19 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <Product>NalApps Macro</Product>
+    <Company>Eoingti Lab</Company>
+    <Authors>Eoingti Lab</Authors>
+    <Description>무료·무인증 Windows 데스크톱 키보드 및 마우스 매크로 도구</Description>
+    <Copyright>Copyright © 2026 Eoingti Lab</Copyright>
+    <RepositoryUrl>https://github.com/Eoingtilab/nalapps-macro</RepositoryUrl>
+    <DebugType>embedded</DebugType>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 </Project>
