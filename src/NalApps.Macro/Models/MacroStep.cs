@@ -29,7 +29,7 @@ public sealed class MacroStep
         MacroStepType.MouseWheel => $"마우스 휠  {Value}",
         MacroStepType.TextInput => $"문자 입력  {Text}",
         MacroStepType.KeyPress => $"키 입력  {Text}",
-        MacroStepType.Delay => $"대기  {Value}ms",
+        MacroStepType.Delay => $"대기  {Value / 1000d:0.###}초",
         _ => Type.ToString()
     };
 }
