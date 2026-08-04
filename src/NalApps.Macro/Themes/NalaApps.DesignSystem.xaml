@@ -57,7 +57,8 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="11" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                                          RecognizesAccessKey="True"
+                                          TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.88" /></Trigger>
@@ -69,18 +70,40 @@
         </Setter>
     </Style>
 
+    <ControlTemplate x:Key="NalaColoredButtonTemplate" TargetType="Button">
+        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="11" Padding="{TemplateBinding Padding}">
+            <TextBlock Text="{TemplateBinding Content}"
+                       Foreground="{TemplateBinding Foreground}"
+                       FontFamily="{TemplateBinding FontFamily}"
+                       FontSize="{TemplateBinding FontSize}"
+                       FontWeight="{TemplateBinding FontWeight}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.88" /></Trigger>
+            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.7" /></Trigger>
+            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Root" Property="Opacity" Value="0.38" /></Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="Button" BasedOn="{StaticResource NalaButtonBase}" />
 
     <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
         <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Template" Value="{StaticResource NalaColoredButtonTemplate}" />
     </Style>
 
     <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
         <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
         <Setter Property="Background" Value="{StaticResource DangerBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Template" Value="{StaticResource NalaColoredButtonTemplate}" />
     </Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
@@ -100,6 +123,16 @@
         <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="8,5" />
     </Style>
 
     <Style TargetType="ListBox">
