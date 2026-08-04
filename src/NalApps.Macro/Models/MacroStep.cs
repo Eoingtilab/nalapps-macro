@@ -9,6 +9,7 @@ public enum MacroStepType
     MouseWheel,
     TextInput,
     KeyPress,
+    KeyHold,
     Delay
 }
 
@@ -29,6 +30,7 @@ public sealed class MacroStep
         MacroStepType.MouseWheel => $"마우스 휠  {Value}",
         MacroStepType.TextInput => $"문자 입력  {Text}",
         MacroStepType.KeyPress => $"키 입력  {Text}",
+        MacroStepType.KeyHold => $"키 누르고 있기  {Text} · {Value / 1000d:0.###}초",
         MacroStepType.Delay => $"대기  {Value / 1000d:0.###}초",
         _ => Type.ToString()
     };
