@@ -1,0 +1,130 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="NalaBlue">#3182F6</Color>
+    <Color x:Key="NalaBluePressed">#1B64DA</Color>
+    <Color x:Key="NalaRed">#F04452</Color>
+    <Color x:Key="NalaBackground">#F2F4F6</Color>
+    <Color x:Key="NalaSurface">#FFFFFF</Color>
+    <Color x:Key="NalaText">#191F28</Color>
+    <Color x:Key="NalaSubText">#6B7684</Color>
+    <Color x:Key="NalaLine">#E5E8EB</Color>
+    <Color x:Key="NalaSoft">#F7F8FA</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource NalaBlue}" />
+    <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource NalaBluePressed}" />
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource NalaRed}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource NalaBackground}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource NalaSurface}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource NalaText}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource NalaSubText}" />
+    <SolidColorBrush x:Key="LineBrush" Color="{StaticResource NalaLine}" />
+    <SolidColorBrush x:Key="SoftBrush" Color="{StaticResource NalaSoft}" />
+
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="20" ShadowDepth="2" Opacity="0.08" Color="#243447" />
+
+    <Style TargetType="Window">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    </Style>
+
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <Style x:Key="NalaCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Effect" Value="{StaticResource CardShadow}" />
+    </Style>
+
+    <Style x:Key="NalaButtonBase" TargetType="Button">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{StaticResource SoftBrush}" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="11" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.88" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.7" /></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Root" Property="Opacity" Value="0.38" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="Button" BasedOn="{StaticResource NalaButtonBase}" />
+
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{StaticResource DangerBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource NalaButtonBase}">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style TargetType="TextBox">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Padding" Value="9,7" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="ListBox">
+        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="Margin" Value="0,0,0,5" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="ItemRoot" Background="{StaticResource SoftBrush}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True"><Setter TargetName="ItemRoot" Property="Background" Value="#E8F3FF" /></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ItemRoot" Property="Background" Value="#EEF1F4" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
