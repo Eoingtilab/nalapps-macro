@@ -4,21 +4,66 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#3182F6" />
-        <SolidColorBrush x:Key="BackgroundBrush" Color="#F4F7FB" />
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#1B64DA" />
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#F2F4F6" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
         <SolidColorBrush x:Key="TextBrush" Color="#191F28" />
         <SolidColorBrush x:Key="MutedBrush" Color="#8B95A1" />
-        <Style TargetType="Button">
+        <SolidColorBrush x:Key="LineBrush" Color="#E5E8EB" />
+        <SolidColorBrush x:Key="SoftBrush" Color="#F9FAFB" />
+
+        <Style TargetType="Window">
             <Setter Property="FontFamily" Value="Pretendard, Segoe UI" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="18,11" />
-            <Setter Property="Margin" Value="4" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         </Style>
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Pretendard, Segoe UI" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="FontFamily" Value="Pretendard, Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#333D4B" />
+            <Setter Property="Background" Value="#F2F4F6" />
+            <Setter Property="Padding" Value="13,8" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.82" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.65" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Root" Property="Opacity" Value="0.4" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Pretendard, Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="FontFamily" Value="Pretendard, Segoe UI" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </Application.Resources>
 </Application>
