@@ -124,7 +124,10 @@ public static class MacroStepValidator
 
         if (step.DurationMilliseconds > 0)
         {
-            ValidateDuration(step.DurationMilliseconds, "연속 실행 시간", errors);
+            if (step.DurationMilliseconds < 10 || step.DurationMilliseconds > MaxDurationMilliseconds)
+            {
+                errors.Add("연속 실행 시간은 10ms~86,400초 범위여야 합니다.");
+            }
             return;
         }
 
