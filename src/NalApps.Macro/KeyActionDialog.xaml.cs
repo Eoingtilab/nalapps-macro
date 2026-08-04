@@ -1,19 +1,37 @@
 using System.Windows;
 using System.Windows.Controls;
+using NalApps.Macro.Core;
+using NalApps.Macro.Models;
 
 namespace NalApps.Macro;
 
 public partial class KeyActionDialog : Window
 {
-    private const int MaxSeconds = 86400;
+    private const int MaxSeconds = 86_400;
+    private readonly MacroStep? _initialStep;
 
-    public string KeyExpression { get; private set; } = "ENTER";
-    public bool HoldKey { get; private set; }
-    public int HoldMilliseconds { get; private set; }
+    public MacroStep? CreatedStep { get; private set; }
 
-    public KeyActionDialog()
+    public KeyActionDialog(MacroStep? initialStep = null)
     {
+        _initialStep = initialStep;
         InitializeComponent();
+
+        if (initialStep is null)
+        {
+            return;
+        }
+
+        KeyExpressionBox.Text = initialStep.Text;
+        if (initialStep.Type == MacroStepType.KeyHold)
+        {
+            HoldRadio.IsChecked = true;
+            HoldSecondsBox.Text = Math.Max(1, initialStep.Value / 1000).ToString();
+        }
+        else
+        {
+            PressOnceRadio.IsChecked = true;
+        }
     }
 
     private void PresetBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -56,10 +74,15 @@ public partial class KeyActionDialog : Window
     private void Add_Click(object sender, RoutedEventArgs e)
     {
         var expression = (KeyExpressionBox.Text ?? string.Empty).Trim().ToUpperInvariant();
-        if (string.IsNullOrWhiteSpace(expression))
+        try
         {
-            MessageBox.Show(this, "키 또는 조합키를 입력해 주세요.", "키보드 동작", MessageBoxButton.OK, MessageBoxImage.Information);
+            _ = KeyExpressionParser.Parse(expression);
+        }
+        catch (InvalidOperationException exception)
+        {
+            MessageBox.Show(this, exception.Message, "키보드 동작", MessageBoxButton.OK, MessageBoxImage.Information);
             KeyExpressionBox.Focus();
+            KeyExpressionBox.SelectAll();
             return;
         }
 
@@ -73,9 +96,15 @@ public partial class KeyActionDialog : Window
             return;
         }
 
-        KeyExpression = expression;
-        HoldKey = hold;
-        HoldMilliseconds = hold ? checked(seconds * 1000) : 0;
+        CreatedStep = new MacroStep
+        {
+            Type = hold ? MacroStepType.KeyHold : MacroStepType.KeyPress,
+            Text = expression,
+            Value = hold ? checked(seconds * 1000) : 0,
+            RepeatCount = _initialStep?.RepeatCount ?? 1,
+            IntervalMilliseconds = _initialStep?.IntervalMilliseconds ?? 100
+        };
+
         DialogResult = true;
     }
 
