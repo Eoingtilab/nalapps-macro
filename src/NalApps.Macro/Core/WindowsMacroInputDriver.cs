@@ -113,7 +113,7 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     private static void SendChecked(INPUT[] inputs)
     {
         var sent = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
-        if (sent != inputs.Length)
+        if (sent != (uint)inputs.Length)
         {
             throw new Win32Exception(Marshal.GetLastWin32Error(), "Windows 입력 전송에 실패했습니다.");
         }
