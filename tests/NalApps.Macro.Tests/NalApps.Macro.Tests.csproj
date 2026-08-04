@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <Deterministic>true</Deterministic>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/NalApps.Macro/NalApps.Macro.csproj" />
