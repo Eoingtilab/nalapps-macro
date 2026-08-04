@@ -5,6 +5,7 @@ namespace NalApps.Macro.Core;
 
 public sealed class WindowsMacroInputDriver : IMacroInputDriver
 {
+    private const uint InputMouse = 0;
     private const uint InputKeyboard = 1;
     private const uint KeyEventKeyUp = 0x0002;
     private const uint KeyEventUnicode = 0x0004;
@@ -21,17 +22,17 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     public void MouseButtonDown(MouseButtonKind button)
     {
-        mouse_event(button == MouseButtonKind.Left ? MouseEventLeftDown : MouseEventRightDown, 0, 0, 0, UIntPtr.Zero);
+        SendMouse(button == MouseButtonKind.Left ? MouseEventLeftDown : MouseEventRightDown, 0);
     }
 
     public void MouseButtonUp(MouseButtonKind button)
     {
-        mouse_event(button == MouseButtonKind.Left ? MouseEventLeftUp : MouseEventRightUp, 0, 0, 0, UIntPtr.Zero);
+        SendMouse(button == MouseButtonKind.Left ? MouseEventLeftUp : MouseEventRightUp, 0);
     }
 
     public void MouseWheel(int delta)
     {
-        mouse_event(MouseEventWheel, 0, 0, unchecked((uint)delta), UIntPtr.Zero);
+        SendMouse(MouseEventWheel, unchecked((uint)delta));
     }
 
     public void SendUnicodeCharacter(char character)
@@ -57,8 +58,17 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     public void ReleaseSafetyState()
     {
-        MouseButtonUp(MouseButtonKind.Left);
-        MouseButtonUp(MouseButtonKind.Right);
+        foreach (var button in new[] { MouseButtonKind.Left, MouseButtonKind.Right })
+        {
+            try
+            {
+                MouseButtonUp(button);
+            }
+            catch (Win32Exception)
+            {
+                // Best-effort cleanup during cancellation or shutdown.
+            }
+        }
 
         foreach (var virtualKey in new ushort[] { 0x10, 0x11, 0x12, 0x5B, 0x5C, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5 })
         {
@@ -71,6 +81,27 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
                 // Best-effort cleanup during cancellation or shutdown.
             }
         }
+    }
+
+    private static void SendMouse(uint flags, uint mouseData)
+    {
+        var inputs = new[]
+        {
+            new INPUT
+            {
+                type = InputMouse,
+                U = new InputUnion
+                {
+                    mi = new MOUSEINPUT
+                    {
+                        mouseData = mouseData,
+                        dwFlags = flags
+                    }
+                }
+            }
+        };
+
+        SendChecked(inputs);
     }
 
     private static void SendVirtualKey(ushort virtualKey, bool keyUp)
@@ -130,7 +161,21 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     private struct InputUnion
     {
         [FieldOffset(0)]
+        public MOUSEINPUT mi;
+
+        [FieldOffset(0)]
         public KEYBDINPUT ki;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MOUSEINPUT
+    {
+        public int dx;
+        public int dy;
+        public uint mouseData;
+        public uint dwFlags;
+        public uint time;
+        public UIntPtr dwExtraInfo;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -148,7 +193,4 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     [DllImport("user32.dll")]
     private static extern bool SetCursorPos(int x, int y);
-
-    [DllImport("user32.dll")]
-    private static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extraInfo);
 }
