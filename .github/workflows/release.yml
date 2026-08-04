@@ -1,0 +1,85 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version without v prefix'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-release:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      RELEASE_REPOSITORY: Eoingtilab/nalapps-releases
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ inputs.version }}'
+          } else {
+            $version = '${{ github.ref_name }}'.TrimStart('v')
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore and build
+        shell: pwsh
+        run: |
+          dotnet restore src/NalApps.Macro/NalApps.Macro.csproj
+          dotnet build src/NalApps.Macro/NalApps.Macro.csproj -c Release --no-restore -warnaserror
+
+      - name: Publish portable package
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $publishDir = "artifacts/NalApps-Macro-v$version-win-x64"
+          $zipPath = "artifacts/NalApps-Macro-v$version-Portable-win-x64.zip"
+          dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:Version=$version -p:FileVersion="$version.0" -p:AssemblyVersion="$version.0" -o $publishDir
+          Compress-Archive -Path "$publishDir/*" -DestinationPath $zipPath -Force
+          $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $(Split-Path $zipPath -Leaf)" | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NalApps-Macro-v${{ steps.version.outputs.version }}
+          path: |
+            artifacts/NalApps-Macro-v${{ steps.version.outputs.version }}-Portable-win-x64.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish to nalapps-releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.NALAPPS_RELEASES_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
+            throw 'NALAPPS_RELEASES_TOKEN secret is required to publish to Eoingtilab/nalapps-releases.'
+          }
+          $version = '${{ steps.version.outputs.version }}'
+          $tag = '${{ steps.version.outputs.tag }}'
+          $zip = "artifacts/NalApps-Macro-v$version-Portable-win-x64.zip"
+          gh release view $tag --repo $env:RELEASE_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $tag already exists in $env:RELEASE_REPOSITORY. Existing releases are immutable."
+          }
+          gh release create $tag $zip artifacts/SHA256SUMS.txt --repo $env:RELEASE_REPOSITORY --title "NalApps Macro v$version" --notes-file RELEASE_NOTES.md
