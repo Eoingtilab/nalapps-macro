@@ -1,17 +1,22 @@
 using System.Windows;
 using System.Windows.Controls;
+using NalApps.Macro.Models;
 
 namespace NalApps.Macro;
 
 public partial class DelayDialog : Window
 {
-    private const int MaxSeconds = 86400;
+    private const int MaxSeconds = 86_400;
 
-    public int DelayMilliseconds { get; private set; } = 1000;
+    public MacroStep? CreatedStep { get; private set; }
 
-    public DelayDialog()
+    public DelayDialog(MacroStep? initialStep = null)
     {
         InitializeComponent();
+        if (initialStep?.Type == MacroStepType.Delay)
+        {
+            SecondsBox.Text = Math.Clamp(initialStep.Value / 1000, 1, MaxSeconds).ToString();
+        }
     }
 
     private void Decrease_Click(object sender, RoutedEventArgs e)
@@ -42,7 +47,11 @@ public partial class DelayDialog : Window
             return;
         }
 
-        DelayMilliseconds = checked(seconds * 1000);
+        CreatedStep = new MacroStep
+        {
+            Type = MacroStepType.Delay,
+            Value = checked(seconds * 1000)
+        };
         DialogResult = true;
     }
 
