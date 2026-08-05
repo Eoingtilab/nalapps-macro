@@ -21,14 +21,10 @@
 
         <Border Grid.Row="0" Style="{StaticResource NalaCard}" Padding="12,9">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="28" Height="28" CornerRadius="9" Background="{StaticResource PrimaryBrush}" Margin="0,0,9,0">
-                        <TextBlock Text="N" Foreground="White" FontSize="15" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="N" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel>
                         <TextBlock Text="날라앱스 매크로" FontSize="15" FontWeight="Bold" />
@@ -44,19 +40,11 @@
         </Border>
 
         <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="8" />
-                <ColumnDefinition Width="116" />
-            </Grid.ColumnDefinitions>
-
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="8" /><ColumnDefinition Width="116" /></Grid.ColumnDefinitions>
             <Border Grid.Column="0" Style="{StaticResource NalaCard}" Padding="10">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" Margin="1,0,1,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="실행 순서" FontSize="13" FontWeight="Bold" />
                             <TextBlock Text="위에서 아래로 실행됩니다" FontSize="9" Foreground="{StaticResource MutedBrush}" />
@@ -66,11 +54,19 @@
                             <Button Content="↓" Style="{StaticResource IconButtonStyle}" Click="MoveDown_Click" ToolTip="아래로 이동" />
                         </StackPanel>
                     </Grid>
-                    <ListBox x:Name="StepList"
-                             DisplayMemberPath="Summary"
-                             SelectionChanged="StepList_SelectionChanged"
-                             FontSize="11.5"
-                             Margin="0" />
+                    <ListBox x:Name="StepList" SelectionChanged="StepList_SelectionChanged" FontSize="11.5" Margin="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Summary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <Button Grid.Column="1" Content="×" Tag="{Binding}" ToolTip="이 동작 삭제"
+                                            Width="28" Height="28" Padding="0" Margin="6,0,0,0"
+                                            Style="{StaticResource DangerButtonStyle}" Click="DeleteInline_Click" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
             </Border>
 
@@ -82,17 +78,14 @@
                 <Button x:Name="ActionMenuButton" Content="＋  동작" Height="39" Margin="0,0,0,6" Click="OpenActionMenu_Click">
                     <Button.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="마우스 이동" Tag="move" Click="AddMousePreset_Click" />
-                            <Separator />
+                            <MenuItem Header="마우스 이동" Tag="move" Click="AddMousePreset_Click" /><Separator />
                             <MenuItem Header="왼쪽 클릭" Tag="left" Click="AddMousePreset_Click" />
                             <MenuItem Header="오른쪽 클릭" Tag="right" Click="AddMousePreset_Click" />
                             <MenuItem Header="더블 클릭" Tag="double" Click="AddMousePreset_Click" />
                             <MenuItem Header="연속 왼쪽 클릭" Tag="continuous-left" Click="AddMousePreset_Click" />
-                            <MenuItem Header="연속 오른쪽 클릭" Tag="continuous-right" Click="AddMousePreset_Click" />
-                            <Separator />
+                            <MenuItem Header="연속 오른쪽 클릭" Tag="continuous-right" Click="AddMousePreset_Click" /><Separator />
                             <MenuItem Header="휠 위" Tag="wheel-up" Click="AddMousePreset_Click" />
-                            <MenuItem Header="휠 아래" Tag="wheel-down" Click="AddMousePreset_Click" />
-                            <Separator />
+                            <MenuItem Header="휠 아래" Tag="wheel-down" Click="AddMousePreset_Click" /><Separator />
                             <MenuItem Header="키 누르고 있기" Tag="key-hold" Click="AddQuickAction_Click" />
                             <MenuItem Header="문자 입력" Tag="text" Click="AddQuickAction_Click" />
                             <MenuItem Header="대기 시간" Tag="delay" Click="AddQuickAction_Click" />
@@ -107,11 +100,7 @@
         <Border Grid.Row="4" Style="{StaticResource NalaCard}" Padding="10,8">
             <StackPanel>
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox x:Name="InfiniteRepeatCheck" Content="무한 반복" Margin="0,0,8,0" />
                         <TextBlock Text="횟수" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
@@ -119,7 +108,7 @@
                     </StackPanel>
                     <TextBox Grid.Column="1" x:Name="MacroNameBox" Text="새 매크로" Height="29" Margin="10,0" Padding="7,3" />
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="▶ 시작" Height="32" MinWidth="72" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="Run_Click" />
+                        <Button Content="▶ 시작" Height="32" MinWidth="72" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="RunHidden_Click" />
                         <Button Content="일시정지" Height="32" Padding="9,4" Click="Pause_Click" />
                         <Button Content="중지" Height="32" Padding="9,4" Style="{StaticResource DangerButtonStyle}" Click="Stop_Click" />
                     </StackPanel>
@@ -127,30 +116,15 @@
 
                 <Expander Header="선택 단계 빠른 설정" Margin="0,7,0,0">
                     <Grid Margin="0,7,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="7" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" x:Name="SelectedTypeText"
-                                   Text="선택된 단계 없음" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5" />
-
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="7" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" x:Name="SelectedTypeText" Text="선택된 단계 없음" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5" />
                         <StackPanel Grid.Row="1" Grid.Column="0">
-                            <TextBlock Text="X 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" />
-                            <TextBox x:Name="XBox" Height="28" Padding="6,3" />
+                            <TextBlock Text="X 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" /><TextBox x:Name="XBox" Height="28" Padding="6,3" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="2">
-                            <TextBlock Text="Y 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" />
-                            <TextBox x:Name="YBox" Height="28" Padding="6,3" />
+                            <TextBlock Text="Y 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" /><TextBox x:Name="YBox" Height="28" Padding="6,3" />
                         </StackPanel>
-
                         <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,5,0,0">
                             <TextBlock Text="문자 또는 키 조합" FontSize="9" Foreground="{StaticResource MutedBrush}" />
                             <TextBox x:Name="TextValueBox" Height="28" Padding="6,3" />
@@ -159,26 +133,16 @@
                         <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,5,0,0">
                             <TextBlock Text="시간(초)" FontSize="9" Foreground="{StaticResource MutedBrush}" />
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="28" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="28" />
-                                </Grid.ColumnDefinitions>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="28" /></Grid.ColumnDefinitions>
                                 <Button Grid.Column="0" Content="−" Height="28" Padding="0" Click="DecreaseSelectedSeconds_Click" />
                                 <TextBox Grid.Column="1" x:Name="SecondsValueEditorBox" Height="28" Margin="4,0" Padding="6,3" TextAlignment="Center">
-                                    <TextBox.Text>
-                                        <Binding ElementName="NumberValueBox" Path="Text"
-                                                 Converter="{StaticResource MillisecondsToSecondsConverter}"
-                                                 Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
-                                    </TextBox.Text>
+                                    <TextBox.Text><Binding ElementName="NumberValueBox" Path="Text" Converter="{StaticResource MillisecondsToSecondsConverter}" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" /></TextBox.Text>
                                 </TextBox>
                                 <Button Grid.Column="2" Content="＋" Height="28" Padding="0" Click="IncreaseSelectedSeconds_Click" />
                             </Grid>
                             <TextBlock Text="50처럼 직접 입력 가능" FontSize="8" Foreground="{StaticResource MutedBrush}" />
                         </StackPanel>
-
                         <TextBox x:Name="NumberValueBox" Visibility="Collapsed" />
-
                         <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
                             <Button Content="위치 테스트" Height="30" Padding="9,4" Click="TestPosition_Click" />
                             <Button Content="상세 편집" Height="30" Padding="9,4" Click="EditSelectedStep_Click" />
@@ -188,11 +152,10 @@
                 </Expander>
 
                 <Grid Margin="0,7,0,0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock x:Name="StatusText" Text="준비됨" FontSize="10" FontWeight="SemiBold" />
-                        <TextBlock x:Name="ProgressText" Text="Ctrl+Alt+F8 위치 · Ctrl+Alt+F9 시작 · Ctrl+Alt+F10 일시정지 · Ctrl+Alt+F12 중지"
-                                   FontSize="8.5" Foreground="{StaticResource MutedBrush}" />
+                        <TextBlock x:Name="ProgressText" Text="Ctrl+Alt+F8 위치 · Ctrl+Alt+F9 시작 · Ctrl+Alt+F10 일시정지 · Ctrl+Alt+F12 중지" FontSize="8.5" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
                     <TextBlock Grid.Column="1" Text="NalaApps UI" FontSize="8.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" />
                 </Grid>
