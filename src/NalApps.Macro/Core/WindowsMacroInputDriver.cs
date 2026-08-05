@@ -96,25 +96,57 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     private static bool ActivateWindow(NativePoint point)
     {
-        var window = WindowFromPoint(point);
-        if (window == IntPtr.Zero)
+        var child = WindowFromPoint(point);
+        if (child == IntPtr.Zero)
         {
             return false;
         }
 
-        var root = GetAncestor(window, GetAncestorRoot);
-        if (root != IntPtr.Zero)
+        var root = GetAncestor(child, GetAncestorRoot);
+        if (root == IntPtr.Zero)
         {
-            window = root;
+            root = child;
         }
 
-        if (IsIconic(window))
+        if (IsIconic(root))
         {
-            ShowWindow(window, 9);
+            ShowWindow(root, 9);
         }
 
-        BringWindowToTop(window);
-        return SetForegroundWindow(window);
+        BringWindowToTop(root);
+        SetForegroundWindow(root);
+
+        var foreground = GetForegroundWindow();
+        var currentThread = GetCurrentThreadId();
+        var foregroundThread = foreground == IntPtr.Zero
+            ? 0u
+            : GetWindowThreadProcessId(foreground, IntPtr.Zero);
+        var targetThread = GetWindowThreadProcessId(child, IntPtr.Zero);
+
+        var attachedForeground = foregroundThread != 0 && foregroundThread != currentThread &&
+                                 AttachThreadInput(currentThread, foregroundThread, true);
+        var attachedTarget = targetThread != 0 && targetThread != currentThread && targetThread != foregroundThread &&
+                             AttachThreadInput(currentThread, targetThread, true);
+
+        try
+        {
+            SetActiveWindow(root);
+            SetFocus(child);
+        }
+        finally
+        {
+            if (attachedTarget)
+            {
+                AttachThreadInput(currentThread, targetThread, false);
+            }
+
+            if (attachedForeground)
+            {
+                AttachThreadInput(currentThread, foregroundThread, false);
+            }
+        }
+
+        return GetForegroundWindow() == root || IsChild(root, GetFocus());
     }
 
     private static void SendMouse(uint flags, uint mouseData)
@@ -255,4 +287,28 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hwnd, int command);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetFocus();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetFocus(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetActiveWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsChild(IntPtr parent, IntPtr child);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, IntPtr processId);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll")]
+    private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool attach);
 }
