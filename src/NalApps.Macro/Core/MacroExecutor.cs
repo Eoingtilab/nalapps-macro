@@ -4,8 +4,10 @@ namespace NalApps.Macro.Core;
 
 public sealed class MacroExecutor
 {
-    private const int MouseSettleMilliseconds = 60;
+    private const int TargetActivationDelayMilliseconds = 120;
     private const int MousePressMilliseconds = 25;
+    private const int MinimumWheelIntervalMilliseconds = 140;
+
     private readonly IMacroInputDriver _input;
     private readonly IMacroDelay _delay;
 
@@ -69,7 +71,7 @@ public sealed class MacroExecutor
         }
     }
 
-    private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
+    private async Task PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
     {
         if (step.HasPosition)
         {
@@ -78,8 +80,19 @@ public sealed class MacroExecutor
                 throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
             }
 
-            await _delay.DelayAsync(MouseSettleMilliseconds, cancellationToken);
+            _input.ActivateWindowAtPoint(step.X, step.Y);
         }
+        else
+        {
+            _input.ActivateWindowUnderCursor();
+        }
+
+        await _delay.DelayAsync(TargetActivationDelayMilliseconds, cancellationToken);
+    }
+
+    private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
+    {
+        await PrepareMouseTargetAsync(step, cancellationToken);
 
         if (step.DurationMilliseconds > 0)
         {
@@ -147,23 +160,16 @@ public sealed class MacroExecutor
 
     private async Task ExecuteMouseWheelAsync(MacroStep step, CancellationToken cancellationToken)
     {
-        if (step.HasPosition)
-        {
-            if (!_input.MoveMouse(step.X, step.Y))
-            {
-                throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
-            }
+        await PrepareMouseTargetAsync(step, cancellationToken);
 
-            await _delay.DelayAsync(MouseSettleMilliseconds, cancellationToken);
-        }
-
+        var interval = Math.Max(step.IntervalMilliseconds, MinimumWheelIntervalMilliseconds);
         for (var index = 0; index < step.RepeatCount; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _input.MouseWheel(step.Value);
             if (index + 1 < step.RepeatCount)
             {
-                await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
+                await _delay.DelayAsync(interval, cancellationToken);
             }
         }
     }
@@ -217,10 +223,7 @@ public sealed class MacroExecutor
                 pressed.Add(key);
             }
 
-            if (holdMilliseconds > 0)
-            {
-                await _delay.DelayAsync(holdMilliseconds, cancellationToken);
-            }
+            await _delay.DelayAsync(holdMilliseconds > 0 ? holdMilliseconds : 25, cancellationToken);
         }
         finally
         {
