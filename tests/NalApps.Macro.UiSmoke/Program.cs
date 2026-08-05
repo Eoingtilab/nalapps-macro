@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using NalApps.Macro.Converters;
 
 namespace NalApps.Macro.UiSmoke;
 
@@ -13,13 +14,7 @@ internal static class Program
     {
         Console.WriteLine("NalaApps Macro WPF UI smoke test");
 
-        var application = new App
-        {
-            ShutdownMode = ShutdownMode.OnExplicitShutdown
-        };
-        application.InitializeComponent();
-        application.StartupUri = null;
-
+        var application = CreateTestApplication();
         var mainWindow = new MainWindow();
         application.MainWindow = mainWindow;
 
@@ -44,6 +39,27 @@ internal static class Program
 
             application.Shutdown();
         }
+    }
+
+    private static Application CreateTestApplication()
+    {
+        var application = new Application
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown,
+            Resources = new ResourceDictionary()
+        };
+
+        application.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri(
+                "/NalaApps.Macro;component/Themes/NalaApps.DesignSystem.xaml",
+                UriKind.Relative)
+        });
+        application.Resources.Add(
+            "MillisecondsToSecondsConverter",
+            new MillisecondsToSecondsConverter());
+
+        return application;
     }
 
     private static void TestMouseApplyKeepsMainWindowAlive(MainWindow mainWindow)
