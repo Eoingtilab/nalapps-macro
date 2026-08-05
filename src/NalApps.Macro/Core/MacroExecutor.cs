@@ -173,6 +173,26 @@ public sealed class MacroExecutor
         await PrepareMouseTargetAsync(step, cancellationToken);
 
         var interval = Math.Max(step.IntervalMilliseconds, MinimumWheelIntervalMilliseconds);
+        if (step.DurationMilliseconds > 0)
+        {
+            var elapsed = 0;
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _input.MouseWheel(step.Value);
+
+                if (elapsed + interval >= step.DurationMilliseconds)
+                {
+                    break;
+                }
+
+                await _delay.DelayAsync(interval, cancellationToken);
+                elapsed += interval;
+            }
+
+            return;
+        }
+
         for (var index = 0; index < step.RepeatCount; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
