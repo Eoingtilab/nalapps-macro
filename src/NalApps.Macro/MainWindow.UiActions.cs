@@ -8,32 +8,9 @@ public partial class MainWindow
 {
     private async void RunHidden_Click(object sender, RoutedEventArgs e)
     {
-        if (_running)
-        {
-            await RunMacroAsync();
-            return;
-        }
-
-        var restoreWindow = IsVisible;
-        try
-        {
-            if (restoreWindow)
-            {
-                Hide();
-                await Task.Delay(250);
-            }
-
-            await RunMacroAsync();
-        }
-        finally
-        {
-            if (restoreWindow && !IsVisible)
-            {
-                Show();
-                Activate();
-                Focus();
-            }
-        }
+        // Historical handler name is retained because MainWindow.xaml is already wired to it.
+        // The controller must remain visible so the user can pause or stop execution at any time.
+        await RunMacroAsync();
     }
 
     private void DeleteInline_Click(object sender, RoutedEventArgs e)
