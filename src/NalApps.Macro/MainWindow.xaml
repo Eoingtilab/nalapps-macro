@@ -8,6 +8,7 @@
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource BackgroundBrush}"
         WindowStartupLocation="CenterScreen"
+        Loaded="MainWindow_Loaded"
         SourceInitialized="MainWindow_SourceInitialized"
         Closing="Window_Closing">
     <Grid Margin="10">
@@ -50,6 +51,7 @@
                             <TextBlock Text="위에서 아래로 실행됩니다" FontSize="9" Foreground="{StaticResource MutedBrush}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ToggleButton x:Name="InsertBelowCheck" Content="아래 삽입" Height="28" Padding="8,0" Margin="0,0,5,0" ToolTip="켜면 새 동작을 선택한 단계 바로 아래에 삽입합니다." />
                             <Button Content="↑" Style="{StaticResource IconButtonStyle}" Click="MoveUp_Click" ToolTip="위로 이동" />
                             <Button Content="↓" Style="{StaticResource IconButtonStyle}" Click="MoveDown_Click" ToolTip="아래로 이동" />
                         </StackPanel>
@@ -60,9 +62,14 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                     <TextBlock Text="{Binding Summary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                    <Button Grid.Column="1" Content="×" Tag="{Binding}" ToolTip="이 동작 삭제"
-                                            Width="28" Height="28" Padding="0" Margin="6,0,0,0"
-                                            Style="{StaticResource DangerButtonStyle}" Click="DeleteInline_Click" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
+                                        <Button Content="⧉" Tag="{Binding}" ToolTip="이 단계를 바로 아래에 복사"
+                                                Width="22" Height="22" Padding="0" Margin="0,0,3,0" FontSize="10"
+                                                Style="{StaticResource IconButtonStyle}" Click="CopyInline_Click" />
+                                        <Button Content="×" Tag="{Binding}" ToolTip="이 동작 삭제"
+                                                Width="20" Height="20" Padding="0" Margin="0"
+                                                FontSize="10" Style="{StaticResource DangerButtonStyle}" Click="DeleteInline_Click" />
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -92,8 +99,7 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-                <Button Content="편집" Height="36" Margin="0,0,0,6" Click="EditSelectedStep_Click" />
-                <Button Content="지우기" Height="36" Style="{StaticResource DangerButtonStyle}" Click="DeleteStep_Click" />
+                <Button Content="편집" Height="36" Click="EditSelectedStep_Click" />
             </StackPanel>
         </Grid>
 
@@ -114,43 +120,6 @@
                     </StackPanel>
                 </Grid>
 
-                <Expander Header="선택 단계 빠른 설정" Margin="0,7,0,0">
-                    <Grid Margin="0,7,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="7" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" x:Name="SelectedTypeText" Text="선택된 단계 없음" FontSize="9.5" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5" />
-                        <StackPanel Grid.Row="1" Grid.Column="0">
-                            <TextBlock Text="X 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" /><TextBox x:Name="XBox" Height="28" Padding="6,3" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="2">
-                            <TextBlock Text="Y 좌표" FontSize="9" Foreground="{StaticResource MutedBrush}" /><TextBox x:Name="YBox" Height="28" Padding="6,3" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,5,0,0">
-                            <TextBlock Text="문자 또는 키 조합" FontSize="9" Foreground="{StaticResource MutedBrush}" />
-                            <TextBox x:Name="TextValueBox" Height="28" Padding="6,3" />
-                            <TextBlock Text="예: SPACE, CTRL+C, ALT+TAB" FontSize="8" Foreground="{StaticResource MutedBrush}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,5,0,0">
-                            <TextBlock Text="시간(초)" FontSize="9" Foreground="{StaticResource MutedBrush}" />
-                            <Grid>
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="28" /></Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="−" Height="28" Padding="0" Click="DecreaseSelectedSeconds_Click" />
-                                <TextBox Grid.Column="1" x:Name="SecondsValueEditorBox" Height="28" Margin="4,0" Padding="6,3" TextAlignment="Center">
-                                    <TextBox.Text><Binding ElementName="NumberValueBox" Path="Text" Converter="{StaticResource MillisecondsToSecondsConverter}" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" /></TextBox.Text>
-                                </TextBox>
-                                <Button Grid.Column="2" Content="＋" Height="28" Padding="0" Click="IncreaseSelectedSeconds_Click" />
-                            </Grid>
-                            <TextBlock Text="50처럼 직접 입력 가능" FontSize="8" Foreground="{StaticResource MutedBrush}" />
-                        </StackPanel>
-                        <TextBox x:Name="NumberValueBox" Visibility="Collapsed" />
-                        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
-                            <Button Content="위치 테스트" Height="30" Padding="9,4" Click="TestPosition_Click" />
-                            <Button Content="상세 편집" Height="30" Padding="9,4" Click="EditSelectedStep_Click" />
-                            <Button Content="빠른 설정 적용" Height="30" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="ApplyStep_Click" />
-                        </StackPanel>
-                    </Grid>
-                </Expander>
-
                 <Grid Margin="0,7,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel>
@@ -161,5 +130,14 @@
                 </Grid>
             </StackPanel>
         </Border>
+
+        <Grid Visibility="Collapsed">
+            <TextBlock x:Name="SelectedTypeText" />
+            <TextBox x:Name="XBox" />
+            <TextBox x:Name="YBox" />
+            <TextBox x:Name="TextValueBox" />
+            <TextBox x:Name="NumberValueBox" />
+            <TextBox x:Name="SecondsValueEditorBox" />
+        </Grid>
     </Grid>
 </Window>

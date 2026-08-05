@@ -6,7 +6,7 @@ namespace NalApps.Macro;
 
 public partial class App : Application
 {
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         MainWindowApplyGuard.Register();
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
@@ -14,15 +14,21 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
 
-        Dispatcher.BeginInvoke(
-            DispatcherPriority.ApplicationIdle,
-            new Action(() =>
-            {
-                if (MainWindow is Window window)
-                {
-                    window.Topmost = true;
-                }
-            }));
+        var splash = new SplashWindow();
+        splash.Show();
+        await splash.PlayAsync();
+
+        var mainWindow = new MainWindow
+        {
+            Topmost = true,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen
+        };
+
+        MainWindow = mainWindow;
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
+        splash.Close();
+        mainWindow.Show();
+        mainWindow.Activate();
     }
 
     private static void HandleDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
