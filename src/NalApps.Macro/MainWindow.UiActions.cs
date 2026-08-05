@@ -12,11 +12,6 @@ public partial class MainWindow
         await RunMacroAsync();
     }
 
-    private async void Run_Click(object sender, RoutedEventArgs e)
-    {
-        await RunMacroAsync();
-    }
-
     private void DeleteInline_Click(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
