@@ -49,6 +49,18 @@ public partial class MouseActionDialog : Window
         }
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        var owner = Owner;
+        base.OnClosed(e);
+
+        if (owner is not null && owner.IsVisible)
+        {
+            owner.Activate();
+            owner.Focus();
+        }
+    }
+
     private void LoadStep(MacroStep step)
     {
         SelectAction(step.Type switch
@@ -168,17 +180,39 @@ public partial class MouseActionDialog : Window
 
     private void PickPosition_Click(object sender, RoutedEventArgs e)
     {
-        var picker = new PositionPickerWindow();
-        Hide();
-        var result = picker.ShowDialog();
-        Show();
-        Activate();
-
-        if (result == true)
+        try
         {
-            FixedPositionCheck.IsChecked = true;
-            XBox.Text = picker.SelectedX.ToString();
-            YBox.Text = picker.SelectedY.ToString();
+            var picker = new PositionPickerWindow { Owner = Owner };
+            Hide();
+            var result = picker.ShowDialog();
+            Show();
+            Activate();
+
+            if (result == true)
+            {
+                FixedPositionCheck.IsChecked = true;
+                XBox.Text = picker.SelectedX.ToString();
+                YBox.Text = picker.SelectedY.ToString();
+            }
+        }
+        catch (Exception exception)
+        {
+            CrashReporter.Write("MouseActionDialog.PickPosition", exception);
+
+            if (!IsVisible)
+            {
+                Show();
+            }
+
+            Activate();
+            MessageBox.Show(
+                this,
+                "마우스 위치를 선택하는 중 오류가 발생했습니다. 프로그램은 종료되지 않았습니다.\n\n" +
+                exception.Message +
+                "\n\n오류 기록: " + CrashReporter.LogPath,
+                "마우스 위치 선택 오류",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
@@ -201,6 +235,26 @@ public partial class MouseActionDialog : Window
     }
 
     private void Apply_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ApplyMouseAction();
+        }
+        catch (Exception exception)
+        {
+            CrashReporter.Write("MouseActionDialog.Apply", exception);
+            MessageBox.Show(
+                this,
+                "마우스 동작을 적용하는 중 오류가 발생했습니다. 프로그램은 종료되지 않았습니다.\n\n" +
+                exception.Message +
+                "\n\n오류 기록: " + CrashReporter.LogPath,
+                "마우스 동작 적용 오류",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private void ApplyMouseAction()
     {
         var action = SelectedActionTag();
         var hasPosition = FixedPositionCheck.IsChecked == true;
