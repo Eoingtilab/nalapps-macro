@@ -108,7 +108,7 @@
                     </StackPanel>
                     <TextBox Grid.Column="1" x:Name="MacroNameBox" Text="새 매크로" Height="29" Margin="10,0" Padding="7,3" />
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="▶ 시작" Height="32" MinWidth="72" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="RunHidden_Click" />
+                        <Button Content="▶ 시작" Height="32" MinWidth="72" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="Run_Click" />
                         <Button Content="일시정지" Height="32" Padding="9,4" Click="Pause_Click" />
                         <Button Content="중지" Height="32" Padding="9,4" Style="{StaticResource DangerButtonStyle}" Click="Stop_Click" />
                     </StackPanel>

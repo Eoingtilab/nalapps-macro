@@ -75,14 +75,20 @@ public sealed class MacroExecutor
         }
     }
 
-    private async Task PrepareKeyboardTargetAsync(CancellationToken cancellationToken)
+    private async Task<bool> PrepareKeyboardTargetAsync(CancellationToken cancellationToken)
     {
-        _input.ActivateWindowUnderCursor();
-        await _delay.DelayAsync(KeyboardFocusDelayMilliseconds, cancellationToken);
+        var activated = _input.ActivateWindowUnderCursor();
+        if (activated)
+        {
+            await _delay.DelayAsync(KeyboardFocusDelayMilliseconds, cancellationToken);
+        }
+
+        return activated;
     }
 
-    private async Task PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
+    private async Task<bool> PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
     {
+        bool activated;
         if (step.HasPosition)
         {
             if (!_input.MoveMouse(step.X, step.Y))
@@ -90,19 +96,24 @@ public sealed class MacroExecutor
                 throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
             }
 
-            _input.ActivateWindowAtPoint(step.X, step.Y);
+            activated = _input.ActivateWindowAtPoint(step.X, step.Y);
         }
         else
         {
-            _input.ActivateWindowUnderCursor();
+            activated = _input.ActivateWindowUnderCursor();
         }
 
-        await _delay.DelayAsync(TargetActivationDelayMilliseconds, cancellationToken);
+        if (activated)
+        {
+            await _delay.DelayAsync(TargetActivationDelayMilliseconds, cancellationToken);
+        }
+
+        return activated;
     }
 
     private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
     {
-        await PrepareMouseTargetAsync(step, cancellationToken);
+        var physicalTiming = await PrepareMouseTargetAsync(step, cancellationToken);
 
         if (step.DurationMilliseconds > 0)
         {
@@ -110,7 +121,7 @@ public sealed class MacroExecutor
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await ClickOnceAsync(button, doubleClick, cancellationToken);
+                await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
 
                 if (elapsed + step.IntervalMilliseconds >= step.DurationMilliseconds)
                 {
@@ -127,7 +138,7 @@ public sealed class MacroExecutor
         for (var index = 0; index < step.RepeatCount; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await ClickOnceAsync(button, doubleClick, cancellationToken);
+            await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
             if (index + 1 < step.RepeatCount)
             {
                 await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
@@ -135,24 +146,27 @@ public sealed class MacroExecutor
         }
     }
 
-    private async Task ClickOnceAsync(MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
+    private async Task ClickOnceAsync(MouseButtonKind button, bool doubleClick, bool physicalTiming, CancellationToken cancellationToken)
     {
-        await ClickButtonAsync(button, cancellationToken);
+        await ClickButtonAsync(button, physicalTiming, cancellationToken);
         if (!doubleClick)
         {
             return;
         }
 
-        await _delay.DelayAsync(90, cancellationToken);
-        await ClickButtonAsync(button, cancellationToken);
+        await _delay.DelayAsync(80, cancellationToken);
+        await ClickButtonAsync(button, physicalTiming, cancellationToken);
     }
 
-    private async Task ClickButtonAsync(MouseButtonKind button, CancellationToken cancellationToken)
+    private async Task ClickButtonAsync(MouseButtonKind button, bool physicalTiming, CancellationToken cancellationToken)
     {
         _input.MouseButtonDown(button);
         try
         {
-            await _delay.DelayAsync(MousePressMilliseconds, cancellationToken);
+            if (physicalTiming)
+            {
+                await _delay.DelayAsync(MousePressMilliseconds, cancellationToken);
+            }
         }
         finally
         {

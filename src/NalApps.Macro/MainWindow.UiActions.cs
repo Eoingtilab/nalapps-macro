@@ -6,10 +6,8 @@ namespace NalApps.Macro;
 
 public partial class MainWindow
 {
-    private async void RunHidden_Click(object sender, RoutedEventArgs e)
+    private async void RunVisible_Click(object sender, RoutedEventArgs e)
     {
-        // Historical handler name is retained because MainWindow.xaml is already wired to it.
-        // The controller must remain visible so the user can pause or stop execution at any time.
         await RunMacroAsync();
     }
 
