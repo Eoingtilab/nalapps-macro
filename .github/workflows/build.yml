@@ -47,28 +47,28 @@ jobs:
         run: dotnet run --project tests/NalApps.Macro.UiSmoke/NalApps.Macro.UiSmoke.csproj -c Release --no-build
 
       - name: Publish portable single-file app
-        run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NalaApps-Macro-v1.1.1-win-x64
+        run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NalaApps-Macro-v1.1.0-r1-win-x64
 
       - name: Verify published executable
         shell: pwsh
         run: |
-          if (-not (Test-Path 'artifacts/NalaApps-Macro-v1.1.1-win-x64/NalaApps.Macro.exe')) {
+          if (-not (Test-Path 'artifacts/NalaApps-Macro-v1.1.0-r1-win-x64/NalaApps.Macro.exe')) {
             throw 'NalaApps.Macro.exe was not created.'
           }
 
       - name: Create portable ZIP and checksum
         shell: pwsh
         run: |
-          Compress-Archive -Path artifacts/NalaApps-Macro-v1.1.1-win-x64/* -DestinationPath artifacts/NalaApps-Macro-v1.1.1-Portable-win-x64.zip -Force
-          $hash = (Get-FileHash artifacts/NalaApps-Macro-v1.1.1-Portable-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  NalaApps-Macro-v1.1.1-Portable-win-x64.zip" | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
+          Compress-Archive -Path artifacts/NalaApps-Macro-v1.1.0-r1-win-x64/* -DestinationPath artifacts/NalaApps-Macro-v1.1.0-r1-Portable-win-x64.zip -Force
+          $hash = (Get-FileHash artifacts/NalaApps-Macro-v1.1.0-r1-Portable-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  NalaApps-Macro-v1.1.0-r1-Portable-win-x64.zip" | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
 
       - name: Upload verified build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NalaApps-Macro-v1.1.1
+          name: NalaApps-Macro-v1.1.0-r1
           path: |
-            artifacts/NalaApps-Macro-v1.1.1-Portable-win-x64.zip
+            artifacts/NalaApps-Macro-v1.1.0-r1-Portable-win-x64.zip
             artifacts/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
