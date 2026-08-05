@@ -8,8 +8,12 @@ public partial class MainWindow
 {
     private async void RunHidden_Click(object sender, RoutedEventArgs e)
     {
-        // Historical handler name is retained because MainWindow.xaml is already wired to it.
-        // The controller must remain visible so the user can pause or stop execution at any time.
+        // Backward-compatible XAML handler. It no longer hides the controller.
+        await RunMacroAsync();
+    }
+
+    private async void Run_Click(object sender, RoutedEventArgs e)
+    {
         await RunMacroAsync();
     }
 
