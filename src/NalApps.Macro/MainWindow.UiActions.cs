@@ -6,9 +6,8 @@ namespace NalApps.Macro;
 
 public partial class MainWindow
 {
-    private async void RunHidden_Click(object sender, RoutedEventArgs e)
+    private async void RunVisible_Click(object sender, RoutedEventArgs e)
     {
-        // Backward-compatible XAML handler. It no longer hides the controller.
         await RunMacroAsync();
     }
 
