@@ -10,10 +10,11 @@ public interface IMacroInputDriver
 {
     bool MoveMouse(int x, int y);
 
-    // Default implementations keep existing test doubles and third-party drivers
-    // source-compatible. Production drivers should override these methods.
-    bool ActivateWindowAtPoint(int x, int y) => true;
-    bool ActivateWindowUnderCursor() => true;
+    // Existing test doubles and external drivers remain source-compatible.
+    // Returning false means no activation occurred, so the executor skips
+    // the activation-settle delay. The Windows production driver overrides both.
+    bool ActivateWindowAtPoint(int x, int y) => false;
+    bool ActivateWindowUnderCursor() => false;
 
     void MouseButtonDown(MouseButtonKind button);
     void MouseButtonUp(MouseButtonKind button);
