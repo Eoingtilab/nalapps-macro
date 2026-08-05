@@ -49,6 +49,18 @@ public partial class MouseActionDialog : Window
         }
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        var owner = Owner;
+        base.OnClosed(e);
+
+        if (owner is not null && owner.IsVisible)
+        {
+            owner.Activate();
+            owner.Focus();
+        }
+    }
+
     private void LoadStep(MacroStep step)
     {
         SelectAction(step.Type switch
@@ -168,17 +180,29 @@ public partial class MouseActionDialog : Window
 
     private void PickPosition_Click(object sender, RoutedEventArgs e)
     {
-        var picker = new PositionPickerWindow();
-        Hide();
-        var result = picker.ShowDialog();
-        Show();
-        Activate();
-
-        if (result == true)
+        try
         {
-            FixedPositionCheck.IsChecked = true;
-            XBox.Text = picker.SelectedX.ToString();
-            YBox.Text = picker.SelectedY.ToString();
+            var picker = new PositionPickerWindow { Owner = Owner };
+            Hide();
+            var result = picker.ShowDialog();
+            Show();
+            Activate();
+
+            if (result == true)
+            {
+                FixedPositionCheck.IsChecked = true;
+                XBox.Text = picker.SelectedX.ToString();
+                YBox.Text = picker.SelectedY.ToString();
+            }
+        }
+        catch (Exception exception)
+        {
+            ShowActionError("마우스 위치 선택", exception);
+            if (!IsVisible)
+            {
+                Show();
+            }
+            Activate();
         }
     }
 
@@ -201,6 +225,18 @@ public partial class MouseActionDialog : Window
     }
 
     private void Apply_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ApplyMouseAction();
+        }
+        catch (Exception exception)
+        {
+            ShowActionError("마우스 동작 적용", exception);
+        }
+    }
+
+    private void ApplyMouseAction()
     {
         var action = SelectedActionTag();
         var hasPosition = FixedPositionCheck.IsChecked == true;
@@ -275,6 +311,21 @@ public partial class MouseActionDialog : Window
 
         CreatedStep = step;
         DialogResult = true;
+    }
+
+    private void ShowActionError(string context, Exception exception)
+    {
+        var path = AppCrashReporter.Write(context, exception);
+        var location = string.IsNullOrWhiteSpace(path)
+            ? string.Empty
+            : $"\n\n오류 기록:\n{path}";
+
+        MessageBox.Show(
+            this,
+            "동작을 적용하지 못했습니다. 프로그램은 종료하지 않았습니다." + location,
+            "마우스 동작 오류",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
     }
 
     private string SelectedActionTag()
