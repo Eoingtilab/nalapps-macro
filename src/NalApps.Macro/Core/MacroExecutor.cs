@@ -5,6 +5,7 @@ namespace NalApps.Macro.Core;
 public sealed class MacroExecutor
 {
     private const int TargetActivationDelayMilliseconds = 120;
+    private const int KeyboardFocusDelayMilliseconds = 80;
     private const int MousePressMilliseconds = 25;
     private const int MinimumWheelIntervalMilliseconds = 140;
 
@@ -40,12 +41,15 @@ public sealed class MacroExecutor
                 await ExecuteMouseWheelAsync(step, cancellationToken);
                 break;
             case MacroStepType.TextInput:
+                await PrepareKeyboardTargetAsync(cancellationToken);
                 await ExecuteTextAsync(step, cancellationToken);
                 break;
             case MacroStepType.KeyPress:
+                await PrepareKeyboardTargetAsync(cancellationToken);
                 await ExecuteKeyAsync(step.Text, 0, cancellationToken);
                 break;
             case MacroStepType.KeyHold:
+                await PrepareKeyboardTargetAsync(cancellationToken);
                 await ExecuteKeyAsync(step.Text, step.Value, cancellationToken);
                 break;
             case MacroStepType.Delay:
@@ -69,6 +73,12 @@ public sealed class MacroExecutor
         {
             throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
         }
+    }
+
+    private async Task PrepareKeyboardTargetAsync(CancellationToken cancellationToken)
+    {
+        _input.ActivateWindowUnderCursor();
+        await _delay.DelayAsync(KeyboardFocusDelayMilliseconds, cancellationToken);
     }
 
     private async Task PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
