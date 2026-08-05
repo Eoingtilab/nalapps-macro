@@ -13,6 +13,16 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
+
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            new Action(() =>
+            {
+                if (MainWindow is Window window)
+                {
+                    window.Topmost = true;
+                }
+            }));
     }
 
     private static void HandleDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
