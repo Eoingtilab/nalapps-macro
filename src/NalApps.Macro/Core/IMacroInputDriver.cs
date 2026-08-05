@@ -9,6 +9,8 @@ public enum MouseButtonKind
 public interface IMacroInputDriver
 {
     bool MoveMouse(int x, int y);
+    bool ActivateWindowAtPoint(int x, int y);
+    bool ActivateWindowUnderCursor();
     void MouseButtonDown(MouseButtonKind button);
     void MouseButtonUp(MouseButtonKind button);
     void MouseWheel(int delta);
