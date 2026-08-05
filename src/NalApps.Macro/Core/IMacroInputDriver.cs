@@ -9,8 +9,12 @@ public enum MouseButtonKind
 public interface IMacroInputDriver
 {
     bool MoveMouse(int x, int y);
-    bool ActivateWindowAtPoint(int x, int y);
-    bool ActivateWindowUnderCursor();
+
+    // Default implementations keep existing test doubles and third-party drivers
+    // source-compatible. Production drivers should override these methods.
+    bool ActivateWindowAtPoint(int x, int y) => true;
+    bool ActivateWindowUnderCursor() => true;
+
     void MouseButtonDown(MouseButtonKind button);
     void MouseButtonUp(MouseButtonKind button);
     void MouseWheel(int delta);
