@@ -4,6 +4,8 @@ namespace NalApps.Macro.Core;
 
 public sealed class MacroExecutor
 {
+    private const int MouseSettleMilliseconds = 60;
+    private const int MousePressMilliseconds = 25;
     private readonly IMacroInputDriver _input;
     private readonly IMacroDelay _delay;
 
@@ -23,48 +25,36 @@ public sealed class MacroExecutor
             case MacroStepType.MouseMove:
                 MoveMouse(step);
                 break;
-
             case MacroStepType.LeftClick:
                 await ExecuteMouseClickAsync(step, MouseButtonKind.Left, false, cancellationToken);
                 break;
-
             case MacroStepType.RightClick:
                 await ExecuteMouseClickAsync(step, MouseButtonKind.Right, false, cancellationToken);
                 break;
-
             case MacroStepType.DoubleClick:
                 await ExecuteMouseClickAsync(step, MouseButtonKind.Left, true, cancellationToken);
                 break;
-
             case MacroStepType.MouseWheel:
                 await ExecuteMouseWheelAsync(step, cancellationToken);
                 break;
-
             case MacroStepType.TextInput:
                 await ExecuteTextAsync(step, cancellationToken);
                 break;
-
             case MacroStepType.KeyPress:
                 await ExecuteKeyAsync(step.Text, 0, cancellationToken);
                 break;
-
             case MacroStepType.KeyHold:
                 await ExecuteKeyAsync(step.Text, step.Value, cancellationToken);
                 break;
-
             case MacroStepType.Delay:
                 await _delay.DelayAsync(step.Value, cancellationToken);
                 break;
-
             default:
                 throw new InvalidOperationException($"지원하지 않는 동작입니다: {step.Type}");
         }
     }
 
-    public void ReleaseSafetyState()
-    {
-        _input.ReleaseSafetyState();
-    }
+    public void ReleaseSafetyState() => _input.ReleaseSafetyState();
 
     private void MoveMouse(MacroStep step)
     {
@@ -81,9 +71,14 @@ public sealed class MacroExecutor
 
     private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
     {
-        if (step.HasPosition && !_input.MoveMouse(step.X, step.Y))
+        if (step.HasPosition)
         {
-            throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+            if (!_input.MoveMouse(step.X, step.Y))
+            {
+                throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+            }
+
+            await _delay.DelayAsync(MouseSettleMilliseconds, cancellationToken);
         }
 
         if (step.DurationMilliseconds > 0)
@@ -119,35 +114,47 @@ public sealed class MacroExecutor
 
     private async Task ClickOnceAsync(MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
     {
-        ClickButton(button);
+        await ClickButtonAsync(button, cancellationToken);
         if (!doubleClick)
         {
             return;
         }
 
-        await _delay.DelayAsync(80, cancellationToken);
-        ClickButton(button);
+        await _delay.DelayAsync(90, cancellationToken);
+        await ClickButtonAsync(button, cancellationToken);
     }
 
-    private void ClickButton(MouseButtonKind button)
+    private async Task ClickButtonAsync(MouseButtonKind button, CancellationToken cancellationToken)
     {
         _input.MouseButtonDown(button);
         try
         {
-            _input.MouseButtonUp(button);
+            await _delay.DelayAsync(MousePressMilliseconds, cancellationToken);
         }
-        catch
+        finally
         {
-            _input.ReleaseSafetyState();
-            throw;
+            try
+            {
+                _input.MouseButtonUp(button);
+            }
+            catch
+            {
+                _input.ReleaseSafetyState();
+                throw;
+            }
         }
     }
 
     private async Task ExecuteMouseWheelAsync(MacroStep step, CancellationToken cancellationToken)
     {
-        if (step.HasPosition && !_input.MoveMouse(step.X, step.Y))
+        if (step.HasPosition)
         {
-            throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+            if (!_input.MoveMouse(step.X, step.Y))
+            {
+                throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+            }
+
+            await _delay.DelayAsync(MouseSettleMilliseconds, cancellationToken);
         }
 
         for (var index = 0; index < step.RepeatCount; index++)
@@ -174,7 +181,6 @@ public sealed class MacroExecutor
                 {
                     index++;
                 }
-
                 PressSingleKey(0x0D);
             }
             else if (character == '\n')
