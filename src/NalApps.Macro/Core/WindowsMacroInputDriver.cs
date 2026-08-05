@@ -14,10 +14,21 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     private const uint MouseEventRightDown = 0x0008;
     private const uint MouseEventRightUp = 0x0010;
     private const uint MouseEventWheel = 0x0800;
+    private const uint GetAncestorRoot = 2;
 
     public bool MoveMouse(int x, int y)
     {
         return SetCursorPos(x, y);
+    }
+
+    public bool ActivateWindowAtPoint(int x, int y)
+    {
+        return ActivateWindow(new NativePoint { X = x, Y = y });
+    }
+
+    public bool ActivateWindowUnderCursor()
+    {
+        return GetCursorPos(out var point) && ActivateWindow(point);
     }
 
     public void MouseButtonDown(MouseButtonKind button)
@@ -81,6 +92,29 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
                 // Best-effort cleanup during cancellation or shutdown.
             }
         }
+    }
+
+    private static bool ActivateWindow(NativePoint point)
+    {
+        var window = WindowFromPoint(point);
+        if (window == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        var root = GetAncestor(window, GetAncestorRoot);
+        if (root != IntPtr.Zero)
+        {
+            window = root;
+        }
+
+        if (IsIconic(window))
+        {
+            ShowWindow(window, 9);
+        }
+
+        BringWindowToTop(window);
+        return SetForegroundWindow(window);
     }
 
     private static void SendMouse(uint flags, uint mouseData)
@@ -151,6 +185,13 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    private struct NativePoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     private struct INPUT
     {
         public uint type;
@@ -193,4 +234,25 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
 
     [DllImport("user32.dll")]
     private static extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out NativePoint point);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr WindowFromPoint(NativePoint point);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hwnd, int command);
 }
