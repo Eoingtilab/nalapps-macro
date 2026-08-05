@@ -16,6 +16,10 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     private const uint MouseEventWheel = 0x0800;
     private const uint GetAncestorRoot = 2;
 
+    private readonly object _inputStateLock = new();
+    private readonly HashSet<MouseButtonKind> _pressedMouseButtons = [];
+    private readonly HashSet<ushort> _pressedKeys = [];
+
     public bool MoveMouse(int x, int y)
     {
         return SetCursorPos(x, y);
@@ -34,10 +38,25 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     public void MouseButtonDown(MouseButtonKind button)
     {
         SendMouse(button == MouseButtonKind.Left ? MouseEventLeftDown : MouseEventRightDown, 0);
+        lock (_inputStateLock)
+        {
+            _pressedMouseButtons.Add(button);
+        }
     }
 
     public void MouseButtonUp(MouseButtonKind button)
     {
+        bool wasPressed;
+        lock (_inputStateLock)
+        {
+            wasPressed = _pressedMouseButtons.Remove(button);
+        }
+
+        if (!wasPressed)
+        {
+            return;
+        }
+
         SendMouse(button == MouseButtonKind.Left ? MouseEventLeftUp : MouseEventRightUp, 0);
     }
 
@@ -60,20 +79,46 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
     public void KeyDown(ushort virtualKey)
     {
         SendVirtualKey(virtualKey, false);
+        lock (_inputStateLock)
+        {
+            _pressedKeys.Add(virtualKey);
+        }
     }
 
     public void KeyUp(ushort virtualKey)
     {
+        bool wasPressed;
+        lock (_inputStateLock)
+        {
+            wasPressed = _pressedKeys.Remove(virtualKey);
+        }
+
+        if (!wasPressed)
+        {
+            return;
+        }
+
         SendVirtualKey(virtualKey, true);
     }
 
     public void ReleaseSafetyState()
     {
-        foreach (var button in new[] { MouseButtonKind.Left, MouseButtonKind.Right })
+        MouseButtonKind[] buttons;
+        ushort[] keys;
+
+        lock (_inputStateLock)
+        {
+            buttons = _pressedMouseButtons.ToArray();
+            keys = _pressedKeys.ToArray();
+            _pressedMouseButtons.Clear();
+            _pressedKeys.Clear();
+        }
+
+        foreach (var button in buttons)
         {
             try
             {
-                MouseButtonUp(button);
+                SendMouse(button == MouseButtonKind.Left ? MouseEventLeftUp : MouseEventRightUp, 0);
             }
             catch (Win32Exception)
             {
@@ -81,7 +126,7 @@ public sealed class WindowsMacroInputDriver : IMacroInputDriver
             }
         }
 
-        foreach (var virtualKey in new ushort[] { 0x10, 0x11, 0x12, 0x5B, 0x5C, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5 })
+        foreach (var virtualKey in keys.Reverse())
         {
             try
             {
