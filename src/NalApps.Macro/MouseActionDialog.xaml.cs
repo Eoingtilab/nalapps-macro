@@ -180,13 +180,16 @@ public partial class MouseActionDialog : Window
 
     private void PickPosition_Click(object sender, RoutedEventArgs e)
     {
+        var previousOpacity = Opacity;
         try
         {
-            var picker = new PositionPickerWindow { Owner = Owner };
-            Hide();
+            // Do not call Hide() on a window opened by ShowDialog().
+            // Hiding ends its modal state, which makes a later DialogResult assignment fail.
+            Opacity = 0.02;
+            IsHitTestVisible = false;
+
+            var picker = new PositionPickerWindow { Owner = this };
             var result = picker.ShowDialog();
-            Show();
-            Activate();
 
             if (result == true)
             {
@@ -198,21 +201,21 @@ public partial class MouseActionDialog : Window
         catch (Exception exception)
         {
             CrashReporter.Write("MouseActionDialog.PickPosition", exception);
-
-            if (!IsVisible)
-            {
-                Show();
-            }
-
-            Activate();
             MessageBox.Show(
-                this,
-                "마우스 위치를 선택하는 중 오류가 발생했습니다. 프로그램은 종료되지 않았습니다.\n\n" +
+                Owner ?? this,
+                "마우스 위치를 선택하는 중 오류가 발생했습니다.\n\n" +
                 exception.Message +
                 "\n\n오류 기록: " + CrashReporter.LogPath,
                 "마우스 위치 선택 오류",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        }
+        finally
+        {
+            Opacity = previousOpacity;
+            IsHitTestVisible = true;
+            Activate();
+            Focus();
         }
     }
 
