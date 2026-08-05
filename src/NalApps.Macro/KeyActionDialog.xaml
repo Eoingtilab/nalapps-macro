@@ -83,7 +83,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Button Grid.Column="0" Content="취소" Height="42" IsCancel="True" />
-                    <Button Grid.Column="2" Content="동작 적용" Height="42"
+                    <Button Grid.Column="2" Content="키보드 동작 적용" Height="42"
                             Style="{StaticResource PrimaryButtonStyle}" Click="Add_Click" />
                 </Grid>
             </Grid>
