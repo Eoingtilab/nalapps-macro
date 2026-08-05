@@ -18,6 +18,7 @@ internal static class Program
             ShutdownMode = ShutdownMode.OnExplicitShutdown
         };
         application.InitializeComponent();
+        application.StartupUri = null;
 
         var mainWindow = new MainWindow();
         application.MainWindow = mainWindow;
@@ -118,9 +119,13 @@ internal static class Program
             throw new InvalidOperationException("마우스 동작 적용 후 메인 창이 닫혔습니다.");
         }
 
-        if (Application.Current.Windows.OfType<MainWindow>().Count(window => window.IsVisible) != 1)
+        var visibleMainWindows = Application.Current.Windows
+            .OfType<MainWindow>()
+            .Count(window => window.IsVisible);
+
+        if (visibleMainWindows != 1)
         {
-            throw new InvalidOperationException("마우스 동작 적용 후 메인 창 수가 올바르지 않습니다.");
+            throw new InvalidOperationException($"마우스 동작 적용 후 표시된 메인 창 수가 올바르지 않습니다: {visibleMainWindows}");
         }
     }
 
