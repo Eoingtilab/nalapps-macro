@@ -16,7 +16,7 @@ permissions:
 jobs:
   windows-quality-gate:
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,25 +26,30 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore application and tests
+      - name: Restore application and all tests
         run: |
           dotnet restore src/NalApps.Macro/NalApps.Macro.csproj
           dotnet restore tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj
           dotnet restore tests/NalApps.Macro.UiSmoke/NalApps.Macro.UiSmoke.csproj
+          dotnet restore tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj
 
       - name: Build application with warnings as errors
         run: dotnet build src/NalApps.Macro/NalApps.Macro.csproj -c Release --no-restore -warnaserror
 
-      - name: Build automated test harnesses with warnings as errors
+      - name: Build all test harnesses with warnings as errors
         run: |
           dotnet build tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj -c Release --no-restore -warnaserror
           dotnet build tests/NalApps.Macro.UiSmoke/NalApps.Macro.UiSmoke.csproj -c Release --no-restore -warnaserror
+          dotnet build tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-restore -warnaserror
 
-      - name: Run ISO-aligned automated regression tests
+      - name: Run core automated regression tests
         run: dotnet run --project tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj -c Release --no-build
 
-      - name: Run WPF mouse-apply lifecycle smoke test
+      - name: Run WPF lifecycle smoke tests
         run: dotnet run --project tests/NalApps.Macro.UiSmoke/NalApps.Macro.UiSmoke.csproj -c Release --no-build
+
+      - name: Run comprehensive ISO-aligned functional acceptance tests
+        run: dotnet run --project tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-build
 
       - name: Publish portable single-file app
         run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NalaApps-Macro-v1.1.0-r1-win-x64
