@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NalApps.Macro.Models;
 
 namespace NalApps.Macro.Core;
@@ -65,22 +66,38 @@ public sealed class MacroExecutor
 
 	private async Task ExecuteDelayWithCountdownAsync(MacroStep step, CancellationToken cancellationToken)
 	{
-		var remaining = step.Value;
+		using var countdownCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		var stopwatch = Stopwatch.StartNew();
+		step.RuntimeStatus = $"{Math.Ceiling(step.Value / 1000d):0}초 남음";
+		var countdownTask = UpdateDelayCountdownAsync(step, stopwatch, countdownCts.Token);
+
 		try
 		{
-			while (remaining > 0)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-				step.RuntimeStatus = $"{Math.Ceiling(remaining / 1000d):0}초 남음";
-
-				var interval = Math.Min(remaining, CountdownTickMilliseconds);
-				await _delay.DelayAsync(interval, cancellationToken);
-				remaining -= interval;
-			}
+			await _delay.DelayAsync(step.Value, cancellationToken);
 		}
 		finally
 		{
+			countdownCts.Cancel();
+			try
+			{
+				await countdownTask;
+			}
+			catch (OperationCanceledException)
+			{
+			}
 			step.RuntimeStatus = string.Empty;
+		}
+	}
+
+	private static async Task UpdateDelayCountdownAsync(MacroStep step, Stopwatch stopwatch, CancellationToken cancellationToken)
+	{
+		while (true)
+		{
+			await Task.Delay(CountdownTickMilliseconds, cancellationToken);
+			var remaining = Math.Max(0, step.Value - stopwatch.ElapsedMilliseconds);
+			step.RuntimeStatus = remaining > 0
+				? $"{Math.Ceiling(remaining / 1000d):0}초 남음"
+				: "곧 완료";
 		}
 	}
 
