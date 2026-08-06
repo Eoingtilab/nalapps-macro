@@ -4,283 +4,305 @@ namespace NalApps.Macro.Core;
 
 public sealed class MacroExecutor
 {
-    private const int TargetActivationDelayMilliseconds = 120;
-    private const int KeyboardFocusDelayMilliseconds = 80;
-    private const int MousePressMilliseconds = 25;
-    private const int MinimumWheelIntervalMilliseconds = 140;
+	private const int TargetActivationDelayMilliseconds = 120;
+	private const int KeyboardFocusDelayMilliseconds = 80;
+	private const int MousePressMilliseconds = 25;
+	private const int MinimumWheelIntervalMilliseconds = 140;
+	private const int CountdownTickMilliseconds = 1_000;
 
-    private readonly IMacroInputDriver _input;
-    private readonly IMacroDelay _delay;
+	private readonly IMacroInputDriver _input;
+	private readonly IMacroDelay _delay;
 
-    public MacroExecutor(IMacroInputDriver input, IMacroDelay delay)
-    {
-        _input = input ?? throw new ArgumentNullException(nameof(input));
-        _delay = delay ?? throw new ArgumentNullException(nameof(delay));
-    }
+	public MacroExecutor(IMacroInputDriver input, IMacroDelay delay)
+	{
+		_input = input ?? throw new ArgumentNullException(nameof(input));
+		_delay = delay ?? throw new ArgumentNullException(nameof(delay));
+	}
 
-    public async Task ExecuteStepAsync(MacroStep step, CancellationToken cancellationToken)
-    {
-        MacroStepValidator.EnsureValid(step);
-        cancellationToken.ThrowIfCancellationRequested();
+	public async Task ExecuteStepAsync(MacroStep step, CancellationToken cancellationToken)
+	{
+		MacroStepValidator.EnsureValid(step);
+		cancellationToken.ThrowIfCancellationRequested();
 
-        switch (step.Type)
-        {
-            case MacroStepType.MouseMove:
-                MoveMouse(step);
-                break;
-            case MacroStepType.LeftClick:
-                await ExecuteMouseClickAsync(step, MouseButtonKind.Left, false, cancellationToken);
-                break;
-            case MacroStepType.RightClick:
-                await ExecuteMouseClickAsync(step, MouseButtonKind.Right, false, cancellationToken);
-                break;
-            case MacroStepType.DoubleClick:
-                await ExecuteMouseClickAsync(step, MouseButtonKind.Left, true, cancellationToken);
-                break;
-            case MacroStepType.MouseWheel:
-                await ExecuteMouseWheelAsync(step, cancellationToken);
-                break;
-            case MacroStepType.TextInput:
-                await PrepareKeyboardTargetAsync(cancellationToken);
-                await ExecuteTextAsync(step, cancellationToken);
-                break;
-            case MacroStepType.KeyPress:
-                await PrepareKeyboardTargetAsync(cancellationToken);
-                await ExecuteKeyAsync(step.Text, 0, cancellationToken);
-                break;
-            case MacroStepType.KeyHold:
-                await PrepareKeyboardTargetAsync(cancellationToken);
-                await ExecuteKeyAsync(step.Text, step.Value, cancellationToken);
-                break;
-            case MacroStepType.Delay:
-                await _delay.DelayAsync(step.Value, cancellationToken);
-                break;
-            default:
-                throw new InvalidOperationException($"지원하지 않는 동작입니다: {step.Type}");
-        }
-    }
+		switch (step.Type)
+		{
+			case MacroStepType.MouseMove:
+				MoveMouse(step);
+				break;
+			case MacroStepType.LeftClick:
+				await ExecuteMouseClickAsync(step, MouseButtonKind.Left, false, cancellationToken);
+				break;
+			case MacroStepType.RightClick:
+				await ExecuteMouseClickAsync(step, MouseButtonKind.Right, false, cancellationToken);
+				break;
+			case MacroStepType.DoubleClick:
+				await ExecuteMouseClickAsync(step, MouseButtonKind.Left, true, cancellationToken);
+				break;
+			case MacroStepType.MouseWheel:
+				await ExecuteMouseWheelAsync(step, cancellationToken);
+				break;
+			case MacroStepType.TextInput:
+				await PrepareKeyboardTargetAsync(cancellationToken);
+				await ExecuteTextAsync(step, cancellationToken);
+				break;
+			case MacroStepType.KeyPress:
+				await PrepareKeyboardTargetAsync(cancellationToken);
+				await ExecuteKeyAsync(step.Text, 0, cancellationToken);
+				break;
+			case MacroStepType.KeyHold:
+				await PrepareKeyboardTargetAsync(cancellationToken);
+				await ExecuteKeyAsync(step.Text, step.Value, cancellationToken);
+				break;
+			case MacroStepType.Delay:
+				await ExecuteDelayWithCountdownAsync(step, cancellationToken);
+				break;
+			default:
+				throw new InvalidOperationException($"지원하지 않는 동작입니다: {step.Type}");
+		}
+	}
 
-    public void ReleaseSafetyState() => _input.ReleaseSafetyState();
+	public void ReleaseSafetyState() => _input.ReleaseSafetyState();
 
-    private void MoveMouse(MacroStep step)
-    {
-        if (!step.HasPosition)
-        {
-            throw new InvalidOperationException("마우스 위치가 지정되지 않았습니다.");
-        }
+	private async Task ExecuteDelayWithCountdownAsync(MacroStep step, CancellationToken cancellationToken)
+	{
+		var remaining = step.Value;
+		try
+		{
+			while (remaining > 0)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				step.RuntimeStatus = $"{Math.Ceiling(remaining / 1000d):0}초 남음";
 
-        if (!_input.MoveMouse(step.X, step.Y))
-        {
-            throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
-        }
-    }
+				var interval = Math.Min(remaining, CountdownTickMilliseconds);
+				await _delay.DelayAsync(interval, cancellationToken);
+				remaining -= interval;
+			}
+		}
+		finally
+		{
+			step.RuntimeStatus = string.Empty;
+		}
+	}
 
-    private async Task<bool> PrepareKeyboardTargetAsync(CancellationToken cancellationToken)
-    {
-        var activated = _input.ActivateWindowUnderCursor();
-        if (activated)
-        {
-            await _delay.DelayAsync(KeyboardFocusDelayMilliseconds, cancellationToken);
-        }
+	private void MoveMouse(MacroStep step)
+	{
+		if (!step.HasPosition)
+		{
+			throw new InvalidOperationException("마우스 위치가 지정되지 않았습니다.");
+		}
 
-        return activated;
-    }
+		if (!_input.MoveMouse(step.X, step.Y))
+		{
+			throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+		}
+	}
 
-    private async Task<bool> PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
-    {
-        bool activated;
-        if (step.HasPosition)
-        {
-            if (!_input.MoveMouse(step.X, step.Y))
-            {
-                throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
-            }
+	private async Task<bool> PrepareKeyboardTargetAsync(CancellationToken cancellationToken)
+	{
+		var activated = _input.ActivateWindowUnderCursor();
+		if (activated)
+		{
+			await _delay.DelayAsync(KeyboardFocusDelayMilliseconds, cancellationToken);
+		}
 
-            activated = _input.ActivateWindowAtPoint(step.X, step.Y);
-        }
-        else
-        {
-            activated = _input.ActivateWindowUnderCursor();
-        }
+		return activated;
+	}
 
-        if (activated)
-        {
-            await _delay.DelayAsync(TargetActivationDelayMilliseconds, cancellationToken);
-        }
+	private async Task<bool> PrepareMouseTargetAsync(MacroStep step, CancellationToken cancellationToken)
+	{
+		bool activated;
+		if (step.HasPosition)
+		{
+			if (!_input.MoveMouse(step.X, step.Y))
+			{
+				throw new InvalidOperationException($"마우스를 X {step.X}, Y {step.Y} 위치로 이동하지 못했습니다.");
+			}
 
-        return activated;
-    }
+			activated = _input.ActivateWindowAtPoint(step.X, step.Y);
+		}
+		else
+		{
+			activated = _input.ActivateWindowUnderCursor();
+		}
 
-    private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
-    {
-        var physicalTiming = await PrepareMouseTargetAsync(step, cancellationToken);
+		if (activated)
+		{
+			await _delay.DelayAsync(TargetActivationDelayMilliseconds, cancellationToken);
+		}
 
-        if (step.DurationMilliseconds > 0)
-        {
-            var elapsed = 0;
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
+		return activated;
+	}
 
-                if (elapsed + step.IntervalMilliseconds >= step.DurationMilliseconds)
-                {
-                    break;
-                }
+	private async Task ExecuteMouseClickAsync(MacroStep step, MouseButtonKind button, bool doubleClick, CancellationToken cancellationToken)
+	{
+		var physicalTiming = await PrepareMouseTargetAsync(step, cancellationToken);
 
-                await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
-                elapsed += step.IntervalMilliseconds;
-            }
+		if (step.DurationMilliseconds > 0)
+		{
+			var elapsed = 0;
+			while (true)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
 
-            return;
-        }
+				if (elapsed + step.IntervalMilliseconds >= step.DurationMilliseconds)
+				{
+					break;
+				}
 
-        for (var index = 0; index < step.RepeatCount; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
-            if (index + 1 < step.RepeatCount)
-            {
-                await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
-            }
-        }
-    }
+				await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
+				elapsed += step.IntervalMilliseconds;
+			}
 
-    private async Task ClickOnceAsync(MouseButtonKind button, bool doubleClick, bool physicalTiming, CancellationToken cancellationToken)
-    {
-        await ClickButtonAsync(button, physicalTiming, cancellationToken);
-        if (!doubleClick)
-        {
-            return;
-        }
+			return;
+		}
 
-        await _delay.DelayAsync(80, cancellationToken);
-        await ClickButtonAsync(button, physicalTiming, cancellationToken);
-    }
+		for (var index = 0; index < step.RepeatCount; index++)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			await ClickOnceAsync(button, doubleClick, physicalTiming, cancellationToken);
+			if (index + 1 < step.RepeatCount)
+			{
+				await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
+			}
+		}
+	}
 
-    private async Task ClickButtonAsync(MouseButtonKind button, bool physicalTiming, CancellationToken cancellationToken)
-    {
-        _input.MouseButtonDown(button);
-        try
-        {
-            if (physicalTiming)
-            {
-                await _delay.DelayAsync(MousePressMilliseconds, cancellationToken);
-            }
-        }
-        finally
-        {
-            try
-            {
-                _input.MouseButtonUp(button);
-            }
-            catch
-            {
-                _input.ReleaseSafetyState();
-                throw;
-            }
-        }
-    }
+	private async Task ClickOnceAsync(MouseButtonKind button, bool doubleClick, bool physicalTiming, CancellationToken cancellationToken)
+	{
+		await ClickButtonAsync(button, physicalTiming, cancellationToken);
+		if (!doubleClick)
+		{
+			return;
+		}
 
-    private async Task ExecuteMouseWheelAsync(MacroStep step, CancellationToken cancellationToken)
-    {
-        await PrepareMouseTargetAsync(step, cancellationToken);
+		await _delay.DelayAsync(80, cancellationToken);
+		await ClickButtonAsync(button, physicalTiming, cancellationToken);
+	}
 
-        var interval = Math.Max(step.IntervalMilliseconds, MinimumWheelIntervalMilliseconds);
-        if (step.DurationMilliseconds > 0)
-        {
-            var elapsed = 0;
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                _input.MouseWheel(step.Value);
+	private async Task ClickButtonAsync(MouseButtonKind button, bool physicalTiming, CancellationToken cancellationToken)
+	{
+		_input.MouseButtonDown(button);
+		try
+		{
+			if (physicalTiming)
+			{
+				await _delay.DelayAsync(MousePressMilliseconds, cancellationToken);
+			}
+		}
+		finally
+		{
+			try
+			{
+				_input.MouseButtonUp(button);
+			}
+			catch
+			{
+				_input.ReleaseSafetyState();
+				throw;
+			}
+		}
+	}
 
-                if (elapsed + interval >= step.DurationMilliseconds)
-                {
-                    break;
-                }
+	private async Task ExecuteMouseWheelAsync(MacroStep step, CancellationToken cancellationToken)
+	{
+		await PrepareMouseTargetAsync(step, cancellationToken);
 
-                await _delay.DelayAsync(interval, cancellationToken);
-                elapsed += interval;
-            }
+		var interval = Math.Max(step.IntervalMilliseconds, MinimumWheelIntervalMilliseconds);
+		if (step.DurationMilliseconds > 0)
+		{
+			var elapsed = 0;
+			while (true)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				_input.MouseWheel(step.Value);
 
-            return;
-        }
+				if (elapsed + interval >= step.DurationMilliseconds)
+				{
+					break;
+				}
 
-        for (var index = 0; index < step.RepeatCount; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _input.MouseWheel(step.Value);
-            if (index + 1 < step.RepeatCount)
-            {
-                await _delay.DelayAsync(interval, cancellationToken);
-            }
-        }
-    }
+				await _delay.DelayAsync(interval, cancellationToken);
+				elapsed += interval;
+			}
 
-    private async Task ExecuteTextAsync(MacroStep step, CancellationToken cancellationToken)
-    {
-        for (var index = 0; index < step.Text.Length; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var character = step.Text[index];
+			return;
+		}
 
-            if (character == '\r')
-            {
-                if (index + 1 < step.Text.Length && step.Text[index + 1] == '\n')
-                {
-                    index++;
-                }
-                PressSingleKey(0x0D);
-            }
-            else if (character == '\n')
-            {
-                PressSingleKey(0x0D);
-            }
-            else if (character == '\t')
-            {
-                PressSingleKey(0x09);
-            }
-            else
-            {
-                _input.SendUnicodeCharacter(character);
-            }
+		for (var index = 0; index < step.RepeatCount; index++)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			_input.MouseWheel(step.Value);
+			if (index + 1 < step.RepeatCount)
+			{
+				await _delay.DelayAsync(interval, cancellationToken);
+			}
+		}
+	}
 
-            if (step.IntervalMilliseconds > 0 && index + 1 < step.Text.Length)
-            {
-                await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
-            }
-        }
-    }
+	private async Task ExecuteTextAsync(MacroStep step, CancellationToken cancellationToken)
+	{
+		for (var index = 0; index < step.Text.Length; index++)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			var character = step.Text[index];
 
-    private async Task ExecuteKeyAsync(string expression, int holdMilliseconds, CancellationToken cancellationToken)
-    {
-        var keys = KeyExpressionParser.Parse(expression);
-        var pressed = new List<ushort>(keys.Count);
+			if (character == '\r')
+			{
+				if (index + 1 < step.Text.Length && step.Text[index + 1] == '\n')
+				{
+					index++;
+				}
+				PressSingleKey(0x0D);
+			}
+			else if (character == '\n')
+			{
+				PressSingleKey(0x0D);
+			}
+			else if (character == '\t')
+			{
+				PressSingleKey(0x09);
+			}
+			else
+			{
+				_input.SendUnicodeCharacter(character);
+			}
 
-        try
-        {
-            foreach (var key in keys)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                _input.KeyDown(key);
-                pressed.Add(key);
-            }
+			if (step.IntervalMilliseconds > 0 && index + 1 < step.Text.Length)
+			{
+				await _delay.DelayAsync(step.IntervalMilliseconds, cancellationToken);
+			}
+		}
+	}
 
-            await _delay.DelayAsync(holdMilliseconds > 0 ? holdMilliseconds : 25, cancellationToken);
-        }
-        finally
-        {
-            for (var index = pressed.Count - 1; index >= 0; index--)
-            {
-                _input.KeyUp(pressed[index]);
-            }
-        }
-    }
+	private async Task ExecuteKeyAsync(string expression, int holdMilliseconds, CancellationToken cancellationToken)
+	{
+		var keys = KeyExpressionParser.Parse(expression);
+		var pressed = new List<ushort>(keys.Count);
 
-    private void PressSingleKey(ushort virtualKey)
-    {
-        _input.KeyDown(virtualKey);
-        _input.KeyUp(virtualKey);
-    }
+		try
+		{
+			foreach (var key in keys)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				_input.KeyDown(key);
+				pressed.Add(key);
+			}
+
+			await _delay.DelayAsync(holdMilliseconds > 0 ? holdMilliseconds : 25, cancellationToken);
+		}
+		finally
+		{
+			for (var index = pressed.Count - 1; index >= 0; index--)
+			{
+				_input.KeyUp(pressed[index]);
+			}
+		}
+	}
+
+	private void PressSingleKey(ushort virtualKey)
+	{
+		_input.KeyDown(virtualKey);
+		_input.KeyUp(virtualKey);
+	}
 }
