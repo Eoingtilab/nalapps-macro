@@ -61,8 +61,12 @@
                             <DataTemplate>
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding Summary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding RuntimeStatus}" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource PrimaryBrush}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0" VerticalAlignment="Center">
                                         <Button Content="⧉" Tag="{Binding}" ToolTip="이 단계를 바로 아래에 복사"
                                                 Width="22" Height="22" Padding="0" Margin="0,0,3,0" FontSize="10"
                                                 Style="{StaticResource IconButtonStyle}" Click="CopyInline_Click" />
