@@ -1,45 +1,15 @@
-using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 
 namespace NalApps.Macro;
 
 public partial class SplashWindow : Window
 {
-    private const string IntroResourceSuffix = "Assets.Intro.jpg.b64";
-
     public SplashWindow()
     {
         InitializeComponent();
-        IntroImage.Source = LoadIntroImage();
-    }
-
-    private static BitmapImage LoadIntroImage()
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = assembly.GetManifestResourceNames()
-            .SingleOrDefault(name => name.EndsWith(IntroResourceSuffix, StringComparison.Ordinal));
-
-        if (resourceName is null)
-        {
-            throw new InvalidOperationException("인트로 이미지 리소스를 찾을 수 없습니다.");
-        }
-
-        using var resourceStream = assembly.GetManifestResourceStream(resourceName)
-            ?? throw new InvalidOperationException("인트로 이미지 리소스를 열 수 없습니다.");
-        using var reader = new StreamReader(resourceStream);
-        var bytes = Convert.FromBase64String(reader.ReadToEnd().Trim());
-
-        using var imageStream = new MemoryStream(bytes, writable: false);
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.StreamSource = imageStream;
-        bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
+        IntroImage.Source = BrandAssets.LoadSplashImage();
+        Icon = BrandAssets.LoadApplicationIcon();
     }
 
     public async Task PlayAsync()
