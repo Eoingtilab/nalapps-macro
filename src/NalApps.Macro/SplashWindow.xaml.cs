@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace NalApps.Macro;
 
@@ -18,6 +19,9 @@ public partial class SplashWindow : Window
 
     public async Task PlayAsync()
     {
+        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+
         BeginAnimation(OpacityProperty, new DoubleAnimation
         {
             From = 0,
