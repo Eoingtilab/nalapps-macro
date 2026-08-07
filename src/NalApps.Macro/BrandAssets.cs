@@ -7,21 +7,36 @@ namespace NalApps.Macro;
 
 internal static class BrandAssets
 {
-    private const string SplashResource = "NalApps.Macro.Assets.SplashImage.jpg.b64";
-    private const string IconResource = "NalApps.Macro.Assets.NallaMacro.ico.b64";
+    private const string SplashResourceSuffix = "Assets.SplashImage.jpg.b64";
+    private const string IconResourceSuffix = "Assets.NallaMacro.ico.b64";
 
-    public static BitmapImage? TryLoadSplashImage() => TryLoadBase64Bitmap(SplashResource);
+    public static BitmapImage? TryLoadSplashImage() => TryLoadBase64Bitmap(SplashResourceSuffix);
 
-    public static BitmapImage? TryLoadApplicationIcon() => TryLoadBase64Bitmap(IconResource);
+    public static BitmapImage? TryLoadApplicationIcon() => TryLoadBase64Bitmap(IconResourceSuffix);
 
-    private static BitmapImage? TryLoadBase64Bitmap(string resourceName)
+    private static BitmapImage? TryLoadBase64Bitmap(string resourceSuffix)
     {
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = assembly.GetManifestResourceNames()
+                .FirstOrDefault(name => name.EndsWith(resourceSuffix, StringComparison.OrdinalIgnoreCase));
+
+            if (resourceName is null)
+            {
+                CrashReporter.Write(
+                    $"BrandAssetsMissing:{resourceSuffix}",
+                    new InvalidOperationException(
+                        $"Embedded brand resource was not found. Available resources: {string.Join(", ", assembly.GetManifestResourceNames())}"));
+                return null;
+            }
+
             using var resourceStream = assembly.GetManifestResourceStream(resourceName);
             if (resourceStream is null)
             {
+                CrashReporter.Write(
+                    $"BrandAssetsStream:{resourceName}",
+                    new InvalidOperationException("Embedded brand resource stream could not be opened."));
                 return null;
             }
 
@@ -34,14 +49,21 @@ internal static class BrandAssets
             var image = new BitmapImage();
             image.BeginInit();
             image.CacheOption = BitmapCacheOption.OnLoad;
+            image.CreateOptions = BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile;
             image.StreamSource = imageStream;
             image.EndInit();
+
+            if (image.PixelWidth <= 0 || image.PixelHeight <= 0)
+            {
+                throw new InvalidDataException($"Decoded brand image has invalid dimensions: {image.PixelWidth}x{image.PixelHeight}.");
+            }
+
             image.Freeze();
             return image;
         }
         catch (Exception ex)
         {
-            CrashReporter.Write($"BrandAssets:{resourceName}", ex);
+            CrashReporter.Write($"BrandAssets:{resourceSuffix}", ex);
             return null;
         }
     }
