@@ -11,12 +11,16 @@
         Topmost="True"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
+        SourceInitialized="SplashWindow_SourceInitialized"
         Opacity="0">
-    <Image x:Name="IntroImage"
-           Source="Assets/SplashImage.jpg"
-           HorizontalAlignment="Stretch"
-           VerticalAlignment="Stretch"
-           Stretch="Fill"
-           SnapsToDevicePixels="True"
-           RenderOptions.BitmapScalingMode="HighQuality" />
+    <Border CornerRadius="20"
+            Background="White"
+            ClipToBounds="True">
+        <Image x:Name="IntroImage"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               Stretch="Fill"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality" />
+    </Border>
 </Window>
