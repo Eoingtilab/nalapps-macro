@@ -6,27 +6,13 @@ namespace NalApps.Macro;
 
 public partial class App : Application
 {
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         MainWindowApplyGuard.Register();
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
-
-        SplashWindow? splash = null;
-        try
-        {
-            splash = new SplashWindow();
-            splash.Show();
-            await splash.PlayFiveSecondIntroAsync();
-        }
-        catch (Exception ex)
-        {
-            CrashReporter.Write("SplashStartup", ex);
-            splash?.Close();
-            splash = null;
-        }
 
         var mainWindow = new MainWindow
         {
@@ -37,7 +23,6 @@ public partial class App : Application
 
         MainWindow = mainWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        splash?.Close();
         mainWindow.Show();
         mainWindow.Activate();
     }

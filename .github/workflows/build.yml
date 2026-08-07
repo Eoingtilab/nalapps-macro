@@ -51,35 +51,28 @@ jobs:
       - name: Run comprehensive ISO-aligned functional acceptance tests
         run: dotnet run --project tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-build
 
-      - name: Verify review-style external splash contract
+      - name: Verify release contract
         shell: pwsh
         run: |
           $project = Get-Content 'src/NalApps.Macro/NalApps.Macro.csproj' -Raw
-          if ($project -notmatch '<Content Include="Assets\\NallaMacro_Splash\.png">') {
-            throw 'External splash PNG is not configured as published content.'
-          }
-          if ($project -notmatch '<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>') {
-            throw 'Splash PNG is not guaranteed to be copied to publish output.'
-          }
           if ($project -notmatch '<SelfContained>false</SelfContained>') {
             throw 'Framework-dependent publish contract is not the project default.'
+          }
+          if ($project -match 'SplashWindow|NallaMacro_Splash|SplashScreen') {
+            throw 'Splash implementation residue remains in the project contract.'
           }
 
       - name: Publish lightweight single-file app
         run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained false --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
 
-      - name: Verify published splash asset, executable startup and size
+      - name: Verify published executable startup and size
         shell: pwsh
         run: |
-          $dir = 'artifacts/NallaMacro-v1.1.0-win-x64'
-          $exe = Join-Path $dir 'NallaMacro.exe'
-          $splash = Join-Path $dir 'Assets/NallaMacro_Splash.png'
+          $exe = 'artifacts/NallaMacro-v1.1.0-win-x64/NallaMacro.exe'
           if (-not (Test-Path $exe)) { throw 'NallaMacro.exe was not created.' }
-          if (-not (Test-Path $splash)) { throw 'Published splash PNG was not copied beside the executable.' }
-          if ((Get-Item $splash).Length -le 0) { throw 'Published splash PNG is empty.' }
 
           $process = Start-Process -FilePath $exe -PassThru
-          Start-Sleep -Seconds 6
+          Start-Sleep -Seconds 3
           $process.Refresh()
           if ($process.HasExited) {
             throw "Published NallaMacro.exe exited during startup. ExitCode=$($process.ExitCode)"
