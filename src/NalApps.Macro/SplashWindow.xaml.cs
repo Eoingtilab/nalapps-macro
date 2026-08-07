@@ -8,7 +8,11 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
-        IntroImage.Source = BrandAssets.TryLoadSplashImage();
+
+        var splashImage = BrandAssets.TryLoadSplashImage()
+            ?? throw new InvalidOperationException("인트로 이미지를 불러오지 못했습니다.");
+
+        IntroImage.Source = splashImage;
         Icon = BrandAssets.TryLoadApplicationIcon();
     }
 
