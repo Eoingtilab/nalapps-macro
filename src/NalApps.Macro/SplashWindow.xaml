@@ -17,6 +17,7 @@
             Background="White"
             ClipToBounds="True">
         <Image x:Name="IntroImage"
+               Source="/Assets/NallaMacro_Splash.png"
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch"
                Stretch="Fill"
