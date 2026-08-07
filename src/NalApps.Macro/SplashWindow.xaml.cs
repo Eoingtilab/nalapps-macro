@@ -1,5 +1,5 @@
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
@@ -11,18 +11,16 @@ public partial class SplashWindow : Window
     {
         InitializeComponent();
 
-        var splashImage = BrandAssets.TryLoadSplashImage()
-            ?? throw new InvalidOperationException("인트로 이미지를 불러오지 못했습니다.");
-
-        IntroImage.Source = splashImage;
-        Background = new ImageBrush(splashImage)
+        if (IntroImage.Source is not BitmapSource bitmap || bitmap.PixelWidth <= 0 || bitmap.PixelHeight <= 0)
         {
-            Stretch = Stretch.Fill,
-            AlignmentX = AlignmentX.Center,
-            AlignmentY = AlignmentY.Center
-        };
+            throw new InvalidOperationException("컴파일된 인트로 이미지를 불러오지 못했습니다.");
+        }
+
         Icon = BrandAssets.TryLoadApplicationIcon();
     }
+
+    public bool IsSplashImageReady =>
+        IntroImage.Source is BitmapSource bitmap && bitmap.PixelWidth > 0 && bitmap.PixelHeight > 0;
 
     public async Task PlayAsync()
     {

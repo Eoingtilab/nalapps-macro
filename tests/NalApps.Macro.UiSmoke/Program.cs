@@ -20,6 +20,9 @@ internal static class Program
 
         try
         {
+            TestSplashImageLoads();
+            Console.WriteLine("[PASS] UI-001 compiled splash image loads with non-zero dimensions");
+
             mainWindow.Show();
             TestMouseApplyKeepsMainWindowAlive(mainWindow);
             Console.WriteLine("[PASS] UI-003 mouse action apply keeps application alive and adds a step");
@@ -27,7 +30,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            Console.WriteLine($"[FAIL] UI-003 {exception}");
+            Console.WriteLine($"[FAIL] UI smoke {exception}");
             return 1;
         }
         finally
@@ -63,6 +66,24 @@ internal static class Program
             new MillisecondsToSecondsConverter());
 
         return application;
+    }
+
+    private static void TestSplashImageLoads()
+    {
+        var splash = new SplashWindow();
+        try
+        {
+            splash.Show();
+            splash.UpdateLayout();
+            if (!splash.IsSplashImageReady)
+            {
+                throw new InvalidOperationException("인트로 이미지 소스가 실제 비트맵으로 로드되지 않았습니다.");
+            }
+        }
+        finally
+        {
+            splash.Close();
+        }
     }
 
     private static void TestMouseApplyKeepsMainWindowAlive(MainWindow mainWindow)
