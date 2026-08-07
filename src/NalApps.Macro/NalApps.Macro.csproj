@@ -11,7 +11,7 @@
     <GeneratedApplicationIcon>$(MSBuildProjectDirectory)\obj\NallaMacro.ico</GeneratedApplicationIcon>
     <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
@@ -25,13 +25,11 @@
     <RepositoryUrl>https://github.com/Eoingtilab/nalapps-macro</RepositoryUrl>
     <DebugType>embedded</DebugType>
     <PublishTrimmed>false</PublishTrimmed>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\NallaMacro_Splash.png" />
+    <EmbeddedResource Include="Assets\NallaMacro_Splash.png" LogicalName="NallaMacro.Splash.png" />
     <Resource Include="Assets\NallaMacro.ico.b64" />
   </ItemGroup>
 
