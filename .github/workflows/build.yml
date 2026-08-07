@@ -51,17 +51,30 @@ jobs:
       - name: Run comprehensive ISO-aligned functional acceptance tests
         run: dotnet run --project tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-build
 
-      - name: Publish portable single-file app
-        run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
+      - name: Publish lightweight single-file app
+        run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained false --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
 
-      - name: Verify published executable
+      - name: Verify published executable, splash resource and size
         shell: pwsh
         run: |
-          if (-not (Test-Path 'artifacts/NallaMacro-v1.1.0-win-x64/NallaMacro.exe')) {
+          $exe = 'artifacts/NallaMacro-v1.1.0-win-x64/NallaMacro.exe'
+          if (-not (Test-Path $exe)) {
             throw 'NallaMacro.exe was not created.'
           }
 
-      - name: Create portable ZIP and checksum
+          $process = Start-Process -FilePath $exe -ArgumentList '--verify-splash-resource' -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Published NallaMacro.exe could not load the embedded splash resource. ExitCode=$($process.ExitCode)"
+          }
+
+          $size = (Get-Item $exe).Length
+          $limit = 3MB
+          Write-Host "NallaMacro.exe size: $([Math]::Round($size / 1MB, 2)) MB"
+          if ($size -gt $limit) {
+            throw "Published NallaMacro.exe exceeds 3 MB: $size bytes"
+          }
+
+      - name: Create lightweight ZIP and checksum
         shell: pwsh
         run: |
           Compress-Archive -Path artifacts/NallaMacro-v1.1.0-win-x64/* -DestinationPath artifacts/NallaMacro-v1.1.0-win-x64.zip -Force
