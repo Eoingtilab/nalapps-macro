@@ -6,9 +6,7 @@ namespace NalApps.Macro;
 
 public partial class App : Application
 {
-    private const int MinimumSplashDisplayMilliseconds = 3_000;
-
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         MainWindowApplyGuard.Register();
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
@@ -16,10 +14,19 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
 
-        // The project uses WPF's native SplashScreen build action. Keeping startup
-        // briefly on the UI thread makes the native splash visible long enough to
-        // serve as an intro without maintaining a second custom Window lifecycle.
-        Thread.Sleep(MinimumSplashDisplayMilliseconds);
+        SplashWindow? splash = null;
+        try
+        {
+            splash = new SplashWindow();
+            splash.Show();
+            await splash.PlayFiveSecondIntroAsync();
+        }
+        catch (Exception ex)
+        {
+            CrashReporter.Write("SplashStartup", ex);
+            splash?.Close();
+            splash = null;
+        }
 
         var mainWindow = new MainWindow
         {
@@ -30,6 +37,7 @@ public partial class App : Application
 
         MainWindow = mainWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
+        splash?.Close();
         mainWindow.Show();
         mainWindow.Activate();
     }
