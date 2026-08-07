@@ -103,6 +103,7 @@
         <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
         <Setter Property="Background" Value="{StaticResource DangerBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="MinHeight" Value="0" />
         <Setter Property="Template" Value="{StaticResource NalaColoredButtonTemplate}" />
     </Style>
 
