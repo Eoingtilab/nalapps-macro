@@ -8,8 +8,8 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
-        IntroImage.Source = BrandAssets.LoadSplashImage();
-        Icon = BrandAssets.LoadApplicationIcon();
+        IntroImage.Source = BrandAssets.TryLoadSplashImage();
+        Icon = BrandAssets.TryLoadApplicationIcon();
     }
 
     public async Task PlayAsync()
