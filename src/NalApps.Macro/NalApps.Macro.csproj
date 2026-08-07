@@ -29,10 +29,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Assets\NallaMacro_Splash.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
     <Resource Include="Assets\NallaMacro.ico.b64" />
   </ItemGroup>
 
