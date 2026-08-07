@@ -6,7 +6,7 @@
 
 - 현재 버전: `1.1.0`
 - 지원 운영체제: Windows 10/11 64비트
-- 런타임: .NET 8 self-contained
+- 런타임: .NET 8 Desktop Runtime 필요 (framework-dependent 경량 배포)
 - 이용 정책: 회원가입, 시리얼, 서버 인증, 사용 횟수 제한 없음
 
 ## v1.1.0 주요 기능
@@ -105,7 +105,7 @@
 - 모든 주요 UI 버튼 이벤트 연결
 - 색상 버튼 흰색 글자 계약
 - 경고를 오류로 처리하는 Release 빌드
-- self-contained 단일 EXE publish 확인
+- framework-dependent 단일 EXE publish와 시작 확인
 
 관련 문서:
 
@@ -119,10 +119,12 @@
 
 정식 배포 파일은 GitHub Actions 검증을 통과한 뒤 생성됩니다.
 
-- `NalaApps-Macro-v1.1.0-Portable-win-x64.zip`
+- `NallaMacro-v1.1.0-win-x64.zip`
 - `SHA256SUMS.txt`
 
-압축을 해제한 뒤 `NalaApps.Macro.exe`를 실행하면 됩니다.
+압축을 해제한 뒤 `NallaMacro.exe`를 실행하면 됩니다.
+
+현재 경량 배포본은 .NET 8 Desktop Runtime이 설치된 Windows 10/11 64비트 환경을 대상으로 합니다. 런타임이 없는 PC를 위한 설치 안내 또는 별도 self-contained 패키지는 정식 배포 정책에서 별도로 결정합니다.
 
 ## 직접 빌드
 
@@ -132,7 +134,7 @@ dotnet restore tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj
 dotnet build src/NalApps.Macro/NalApps.Macro.csproj -c Release --no-restore -warnaserror
 dotnet build tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj -c Release --no-restore -warnaserror
 dotnet run --project tests/NalApps.Macro.Tests/NalApps.Macro.Tests.csproj -c Release --no-build
-dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/NalaApps-Macro-v1.1.0-win-x64
+dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
 ```
 
 ## 주의사항
