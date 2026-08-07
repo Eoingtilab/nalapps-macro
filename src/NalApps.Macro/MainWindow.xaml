@@ -71,7 +71,7 @@
                                                 Width="22" Height="22" Padding="0" Margin="0,0,3,0" FontSize="10"
                                                 Style="{StaticResource IconButtonStyle}" Click="CopyInline_Click" />
                                         <Button Content="×" Tag="{Binding}" ToolTip="이 동작 삭제"
-                                                Width="20" Height="20" Padding="0" Margin="0"
+                                                Width="20" Height="20" MinWidth="20" MinHeight="20" Padding="0" Margin="0"
                                                 FontSize="10" Style="{StaticResource DangerButtonStyle}" Click="DeleteInline_Click" />
                                     </StackPanel>
                                 </Grid>
@@ -116,7 +116,7 @@
                         <TextBlock Text="횟수" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
                         <TextBox x:Name="RepeatCountBox" Text="1" Width="44" Height="29" Margin="5,0,0,0" Padding="6,3" />
                     </StackPanel>
-                    <TextBox Grid.Column="1" x:Name="MacroNameBox" Text="새 매크로" Height="29" Margin="10,0" Padding="7,3" />
+                    <TextBox Grid.Column="1" x:Name="MacroNameBox" Text="새 매크로" Visibility="Collapsed" />
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="▶ 시작" Height="32" MinWidth="72" Padding="10,4" Style="{StaticResource PrimaryButtonStyle}" Click="Run_Click" />
                         <Button Content="일시정지" Height="32" Padding="9,4" Click="Pause_Click" />
