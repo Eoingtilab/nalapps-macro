@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using NalApps.Macro.Models;
 
 namespace NalApps.Macro;
@@ -55,6 +56,9 @@ public partial class MainWindow
             return;
         }
 
+        // ObservableCollection은 CollectionChanged 이벤트 처리 중 같은 컬렉션을 다시
+        // Remove/Move 하면 reentrancy 예외를 던질 수 있다. 따라서 편집 복구 및
+        // "선택 단계 아래 추가" 재배치는 이벤트가 완전히 끝난 뒤 Dispatcher에서 수행한다.
         if (_editTargetStep is not null)
         {
             if (e.Action == NotifyCollectionChangedAction.Replace)
@@ -65,51 +69,77 @@ public partial class MainWindow
 
             if (e.Action == NotifyCollectionChangedAction.Add &&
                 e.NewItems?.Count == 1 &&
-                e.NewItems[0] is MacroStep addedStep)
+                e.NewItems[0] is MacroStep editAddedStep)
             {
-                var originalIndex = _steps.IndexOf(_editTargetStep);
-                var editAddedIndex = _steps.IndexOf(addedStep);
-
-                if (originalIndex >= 0 && editAddedIndex >= 0 && !ReferenceEquals(_editTargetStep, addedStep))
-                {
-                    try
-                    {
-                        _insertMoveInProgress = true;
-
-                        _steps.RemoveAt(originalIndex);
-
-                        var currentAddedIndex = _steps.IndexOf(addedStep);
-                        var targetIndex = Math.Min(originalIndex, _steps.Count - 1);
-                        if (currentAddedIndex >= 0 && currentAddedIndex != targetIndex)
-                        {
-                            _steps.Move(currentAddedIndex, targetIndex);
-                        }
-
-                        StepList.SelectedItem = addedStep;
-                        StepList.ScrollIntoView(addedStep);
-                        SetStatus("선택한 동작을 수정했습니다.");
-                    }
-                    finally
-                    {
-                        _insertMoveInProgress = false;
-                        _editTargetStep = null;
-                    }
-
-                    return;
-                }
+                var editTarget = _editTargetStep;
+                _ = Dispatcher.BeginInvoke(
+                    DispatcherPriority.DataBind,
+                    new Action(() => RepairUnexpectedEditAdd(editTarget, editAddedStep)));
+                return;
             }
         }
 
         if (InsertBelowCheck.IsChecked != true ||
             e.Action != NotifyCollectionChangedAction.Add || e.NewItems?.Count != 1 ||
-            e.NewItems[0] is not MacroStep newStep || StepList.SelectedItem is not MacroStep selectedStep)
+            e.NewItems[0] is not MacroStep newStep || StepList.SelectedItem is not MacroStep selectedStep ||
+            ReferenceEquals(selectedStep, newStep))
+        {
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.DataBind,
+            new Action(() => MoveNewStepBelowSelection(selectedStep, newStep)));
+    }
+
+    private void RepairUnexpectedEditAdd(MacroStep? editTarget, MacroStep addedStep)
+    {
+        if (editTarget is null || _insertMoveInProgress)
+        {
+            return;
+        }
+
+        var originalIndex = _steps.IndexOf(editTarget);
+        var addedIndex = _steps.IndexOf(addedStep);
+        if (originalIndex < 0 || addedIndex < 0 || ReferenceEquals(editTarget, addedStep))
+        {
+            _editTargetStep = null;
+            return;
+        }
+
+        try
+        {
+            _insertMoveInProgress = true;
+            _steps.RemoveAt(originalIndex);
+
+            var currentAddedIndex = _steps.IndexOf(addedStep);
+            var targetIndex = Math.Min(originalIndex, Math.Max(0, _steps.Count - 1));
+            if (currentAddedIndex >= 0 && currentAddedIndex != targetIndex)
+            {
+                _steps.Move(currentAddedIndex, targetIndex);
+            }
+
+            StepList.SelectedItem = addedStep;
+            StepList.ScrollIntoView(addedStep);
+            SetStatus("선택한 동작을 수정했습니다.");
+        }
+        finally
+        {
+            _insertMoveInProgress = false;
+            _editTargetStep = null;
+        }
+    }
+
+    private void MoveNewStepBelowSelection(MacroStep selectedStep, MacroStep newStep)
+    {
+        if (_insertMoveInProgress || InsertBelowCheck.IsChecked != true)
         {
             return;
         }
 
         var selectedIndex = _steps.IndexOf(selectedStep);
         var newAddedIndex = _steps.IndexOf(newStep);
-        if (selectedIndex < 0 || newAddedIndex < 0 || selectedStep == newStep)
+        if (selectedIndex < 0 || newAddedIndex < 0 || ReferenceEquals(selectedStep, newStep))
         {
             return;
         }
@@ -124,6 +154,9 @@ public partial class MainWindow
         {
             _insertMoveInProgress = true;
             _steps.Move(newAddedIndex, insertIndex);
+            StepList.SelectedItem = newStep;
+            StepList.ScrollIntoView(newStep);
+            SetStatus($"{newStep.Summary} 동작을 선택 단계 아래에 추가했습니다.");
         }
         finally
         {
