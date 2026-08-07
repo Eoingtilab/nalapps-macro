@@ -13,6 +13,7 @@
         SnapsToDevicePixels="True"
         Opacity="0">
     <Image x:Name="IntroImage"
+           Source="Assets/SplashImage.jpg"
            HorizontalAlignment="Stretch"
            VerticalAlignment="Stretch"
            Stretch="Fill"
