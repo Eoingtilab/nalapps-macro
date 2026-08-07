@@ -1,5 +1,5 @@
 using System.IO;
-using System.Reflection;
+using System.Windows;
 using System.Windows.Media.Imaging;
 using NalApps.Macro.Core;
 
@@ -7,39 +7,25 @@ namespace NalApps.Macro;
 
 internal static class BrandAssets
 {
-    private const string SplashResourceSuffix = "Assets.SplashImage.jpg.b64";
-    private const string IconResourceSuffix = "Assets.NallaMacro.ico.b64";
+    private const string SplashResourcePath = "Assets/SplashImage.jpg.b64";
+    private const string IconResourcePath = "Assets/NallaMacro.ico.b64";
 
-    public static BitmapImage? TryLoadSplashImage() => TryLoadBase64Bitmap(SplashResourceSuffix);
+    public static BitmapImage? TryLoadSplashImage() => TryLoadBase64Bitmap(SplashResourcePath);
 
-    public static BitmapImage? TryLoadApplicationIcon() => TryLoadBase64Bitmap(IconResourceSuffix);
+    public static BitmapImage? TryLoadApplicationIcon() => TryLoadBase64Bitmap(IconResourcePath);
 
-    private static BitmapImage? TryLoadBase64Bitmap(string resourceSuffix)
+    private static BitmapImage? TryLoadBase64Bitmap(string resourcePath)
     {
         try
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = assembly.GetManifestResourceNames()
-                .FirstOrDefault(name => name.EndsWith(resourceSuffix, StringComparison.OrdinalIgnoreCase));
-
-            if (resourceName is null)
+            var uri = new Uri($"pack://application:,,,/{resourcePath}", UriKind.Absolute);
+            var resourceInfo = Application.GetResourceStream(uri);
+            if (resourceInfo?.Stream is null)
             {
-                CrashReporter.Write(
-                    $"BrandAssetsMissing:{resourceSuffix}",
-                    new InvalidOperationException(
-                        $"Embedded brand resource was not found. Available resources: {string.Join(", ", assembly.GetManifestResourceNames())}"));
-                return null;
+                throw new FileNotFoundException($"WPF pack resource was not found: {resourcePath}");
             }
 
-            using var resourceStream = assembly.GetManifestResourceStream(resourceName);
-            if (resourceStream is null)
-            {
-                CrashReporter.Write(
-                    $"BrandAssetsStream:{resourceName}",
-                    new InvalidOperationException("Embedded brand resource stream could not be opened."));
-                return null;
-            }
-
+            using var resourceStream = resourceInfo.Stream;
             using var reader = new StreamReader(resourceStream);
             var raw = reader.ReadToEnd();
             var normalized = new string(raw.Where(c => !char.IsWhiteSpace(c)).ToArray());
@@ -63,7 +49,7 @@ internal static class BrandAssets
         }
         catch (Exception ex)
         {
-            CrashReporter.Write($"BrandAssets:{resourceSuffix}", ex);
+            CrashReporter.Write($"BrandAssets:{resourcePath}", ex);
             return null;
         }
     }
