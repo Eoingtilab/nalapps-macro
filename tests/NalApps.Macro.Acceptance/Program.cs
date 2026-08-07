@@ -284,7 +284,8 @@ internal static class Program
         var project = File.ReadAllText(Path.Combine(Root(), "src", "NalApps.Macro", "NalApps.Macro.csproj"));
         Contains(project, "<TargetFramework>net8.0-windows</TargetFramework>");
         Contains(project, "<PublishSingleFile>true</PublishSingleFile>");
-        Contains(project, "<SelfContained>true</SelfContained>");
+        Contains(project, "<SelfContained>false</SelfContained>");
+        Contains(project, "<SplashScreen Include=\"Assets\\NallaMacro_Splash.png\" />");
         var workflow = File.ReadAllText(Path.Combine(Root(), ".github", "workflows", "build.yml"));
         Contains(workflow, "-warnaserror");
         Contains(workflow, "SHA256SUMS.txt");

@@ -51,10 +51,21 @@ jobs:
       - name: Run comprehensive ISO-aligned functional acceptance tests
         run: dotnet run --project tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-build
 
+      - name: Verify native WPF splash contract
+        shell: pwsh
+        run: |
+          $project = Get-Content 'src/NalApps.Macro/NalApps.Macro.csproj' -Raw
+          if ($project -notmatch '<SplashScreen Include="Assets\\NallaMacro_Splash\.png"\s*/>') {
+            throw 'Native WPF SplashScreen build action is not configured.'
+          }
+          if ($project -notmatch '<SelfContained>false</SelfContained>') {
+            throw 'Framework-dependent publish contract is not the project default.'
+          }
+
       - name: Publish lightweight single-file app
         run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained false --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
 
-      - name: Verify published executable, splash resource and size
+      - name: Verify published executable startup and size
         shell: pwsh
         run: |
           $exe = 'artifacts/NallaMacro-v1.1.0-win-x64/NallaMacro.exe'
@@ -62,10 +73,13 @@ jobs:
             throw 'NallaMacro.exe was not created.'
           }
 
-          $process = Start-Process -FilePath $exe -ArgumentList '--verify-splash-resource' -Wait -PassThru
-          if ($process.ExitCode -ne 0) {
-            throw "Published NallaMacro.exe could not load the embedded splash resource. ExitCode=$($process.ExitCode)"
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          $process.Refresh()
+          if ($process.HasExited) {
+            throw "Published NallaMacro.exe exited during startup. ExitCode=$($process.ExitCode)"
           }
+          Stop-Process -Id $process.Id -Force
 
           $size = (Get-Item $exe).Length
           $limit = 3MB
