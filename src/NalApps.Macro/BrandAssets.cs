@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Windows.Media.Imaging;
+using NalApps.Macro.Core;
 
 namespace NalApps.Macro;
 
