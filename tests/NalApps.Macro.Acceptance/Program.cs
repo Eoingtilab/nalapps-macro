@@ -285,7 +285,8 @@ internal static class Program
         Contains(project, "<TargetFramework>net8.0-windows</TargetFramework>");
         Contains(project, "<PublishSingleFile>true</PublishSingleFile>");
         Contains(project, "<SelfContained>false</SelfContained>");
-        Contains(project, "<SplashScreen Include=\"Assets\\NallaMacro_Splash.png\" />");
+        Contains(project, "<Content Include=\"Assets\\NallaMacro_Splash.png\">");
+        Contains(project, "<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>");
         var workflow = File.ReadAllText(Path.Combine(Root(), ".github", "workflows", "build.yml"));
         Contains(workflow, "-warnaserror");
         Contains(workflow, "SHA256SUMS.txt");
