@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using NalApps.Macro.Converters;
 using NalApps.Macro.Models;
@@ -21,8 +22,8 @@ internal static class Program
 
         try
         {
-            TestSplashImageLoads();
-            Console.WriteLine("[PASS] UI-001 compiled splash image loads with non-zero dimensions");
+            TestSplashImageLoadsAndRenders();
+            Console.WriteLine("[PASS] UI-001 splash bitmap loads and renders non-white visual content");
 
             mainWindow.Show();
             TestMouseApplyKeepsMainWindowAlive(mainWindow);
@@ -72,16 +73,56 @@ internal static class Program
         return application;
     }
 
-    private static void TestSplashImageLoads()
+    private static void TestSplashImageLoadsAndRenders()
     {
-        var splash = new SplashWindow();
+        var splash = new SplashWindow
+        {
+            Opacity = 1
+        };
+
         try
         {
             splash.Show();
             splash.UpdateLayout();
+            splash.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+
             if (!splash.IsSplashImageReady)
             {
                 throw new InvalidOperationException("인트로 이미지 소스가 실제 비트맵으로 로드되지 않았습니다.");
+            }
+
+            var image = splash.FindName("IntroImage") as Image
+                ?? throw new InvalidOperationException("인트로 Image 컨트롤을 찾지 못했습니다.");
+            image.UpdateLayout();
+
+            var width = Math.Max(1, (int)Math.Ceiling(image.ActualWidth));
+            var height = Math.Max(1, (int)Math.Ceiling(image.ActualHeight));
+            var rendered = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+            rendered.Render(image);
+
+            var stride = width * 4;
+            var pixels = new byte[stride * height];
+            rendered.CopyPixels(pixels, stride, 0);
+
+            var visiblyColoredPixels = 0;
+            for (var index = 0; index < pixels.Length; index += 4)
+            {
+                var blue = pixels[index];
+                var green = pixels[index + 1];
+                var red = pixels[index + 2];
+                var alpha = pixels[index + 3];
+
+                if (alpha > 200 && (red < 235 || green < 235 || blue < 235))
+                {
+                    visiblyColoredPixels++;
+                }
+            }
+
+            var minimumColoredPixels = Math.Max(500, width * height / 100);
+            if (visiblyColoredPixels < minimumColoredPixels)
+            {
+                throw new InvalidOperationException(
+                    $"인트로가 흰 화면처럼 렌더링되었습니다. colored={visiblyColoredPixels}, minimum={minimumColoredPixels}");
             }
         }
         finally
