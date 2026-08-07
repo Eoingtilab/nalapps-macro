@@ -5,9 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>NalaApps.Macro</AssemblyName>
+    <AssemblyName>NallaMacro</AssemblyName>
     <RootNamespace>NalApps.Macro</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>$(IntermediateOutputPath)NallaMacro.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -15,11 +16,11 @@
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
     <InformationalVersion>1.1.0</InformationalVersion>
-    <Product>NalaApps Macro</Product>
-    <Company>Eoingti Lab</Company>
-    <Authors>Eoingti Lab</Authors>
+    <Product>날라매크로</Product>
+    <Company>EoingtiLab Inc.</Company>
+    <Authors>EoingtiLab Inc.</Authors>
     <Description>무료·무인증 Windows 데스크톱 키보드 및 마우스 매크로 도구</Description>
-    <Copyright>Copyright © 2026 Eoingti Lab</Copyright>
+    <Copyright>Copyright © 2026 EoingtiLab Inc.</Copyright>
     <RepositoryUrl>https://github.com/Eoingtilab/nalapps-macro</RepositoryUrl>
     <DebugType>embedded</DebugType>
     <PublishTrimmed>false</PublishTrimmed>
@@ -27,4 +28,14 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\SplashImage.jpg.b64" LogicalName="NalApps.Macro.Assets.SplashImage.jpg.b64" />
+    <EmbeddedResource Include="Assets\NallaMacro.ico.b64" LogicalName="NalApps.Macro.Assets.NallaMacro.ico.b64" />
+  </ItemGroup>
+
+  <Target Name="GenerateNallaMacroApplicationIcon" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;$b=(Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\NallaMacro.ico.b64').Trim(); [IO.File]::WriteAllBytes('$(IntermediateOutputPath)NallaMacro.ico',[Convert]::FromBase64String($b))&quot;" />
+  </Target>
 </Project>
