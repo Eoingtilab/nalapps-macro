@@ -14,19 +14,30 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
 
-        var splash = new SplashWindow();
-        splash.Show();
-        await splash.PlayAsync();
+        SplashWindow? splash = null;
+        try
+        {
+            splash = new SplashWindow();
+            splash.Show();
+            await splash.PlayAsync();
+        }
+        catch (Exception ex)
+        {
+            CrashReporter.Write("SplashStartup", ex);
+            splash?.Close();
+            splash = null;
+        }
 
         var mainWindow = new MainWindow
         {
             Topmost = true,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Icon = BrandAssets.TryLoadApplicationIcon()
         };
 
         MainWindow = mainWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        splash.Close();
+        splash?.Close();
         mainWindow.Show();
         mainWindow.Activate();
     }
@@ -38,7 +49,7 @@ public partial class App : Application
             "예기치 않은 오류가 발생했지만 프로그램 종료를 막았습니다.\n\n" +
             e.Exception.Message +
             "\n\n오류 기록: " + CrashReporter.LogPath,
-            "날라앱스 매크로 오류",
+            "날라매크로 오류",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         e.Handled = true;
