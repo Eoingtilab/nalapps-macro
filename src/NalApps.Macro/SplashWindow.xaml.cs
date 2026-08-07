@@ -35,7 +35,11 @@ public partial class SplashWindow : Window
 
     private static BitmapSource LoadSplashBitmap()
     {
-        var uri = new Uri("pack://application:,,,/Assets/SplashImage.jpg", UriKind.Absolute);
+        var assemblyName = typeof(SplashWindow).Assembly.GetName().Name
+            ?? throw new InvalidOperationException("인트로 리소스 어셈블리 이름을 확인할 수 없습니다.");
+        var uri = new Uri(
+            $"pack://application:,,,/{assemblyName};component/Assets/SplashImage.jpg",
+            UriKind.Absolute);
         var resource = Application.GetResourceStream(uri)
             ?? throw new FileNotFoundException("컴파일된 인트로 이미지 리소스를 찾지 못했습니다.", uri.ToString());
 
