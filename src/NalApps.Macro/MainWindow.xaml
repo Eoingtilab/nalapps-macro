@@ -50,8 +50,13 @@
                             <TextBlock Text="실행 순서" FontSize="13" FontWeight="Bold" />
                             <TextBlock Text="위에서 아래로 실행됩니다" FontSize="9" Foreground="{StaticResource MutedBrush}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <ToggleButton x:Name="InsertBelowCheck" Content="아래 삽입" Height="28" Padding="8,0" Margin="0,0,5,0" ToolTip="켜면 새 동작을 선택한 단계 바로 아래에 삽입합니다." />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox x:Name="InsertBelowCheck"
+                                      Content="선택 단계 아래 추가"
+                                      Margin="0,0,6,0"
+                                      VerticalAlignment="Center"
+                                      FontSize="9.5"
+                                      ToolTip="체크하면 새 동작을 현재 선택한 단계 바로 아래에 추가합니다. 체크하지 않으면 맨 아래에 추가합니다." />
                             <Button Content="↑" Style="{StaticResource IconButtonStyle}" Click="MoveUp_Click" ToolTip="위로 이동" />
                             <Button Content="↓" Style="{StaticResource IconButtonStyle}" Click="MoveDown_Click" ToolTip="아래로 이동" />
                         </StackPanel>

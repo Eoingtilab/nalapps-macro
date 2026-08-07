@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
@@ -14,6 +15,12 @@ public partial class SplashWindow : Window
             ?? throw new InvalidOperationException("인트로 이미지를 불러오지 못했습니다.");
 
         IntroImage.Source = splashImage;
+        Background = new ImageBrush(splashImage)
+        {
+            Stretch = Stretch.Fill,
+            AlignmentX = AlignmentX.Center,
+            AlignmentY = AlignmentY.Center
+        };
         Icon = BrandAssets.TryLoadApplicationIcon();
     }
 
