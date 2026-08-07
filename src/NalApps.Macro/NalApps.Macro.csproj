@@ -8,7 +8,8 @@
     <AssemblyName>NallaMacro</AssemblyName>
     <RootNamespace>NalApps.Macro</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>$(IntermediateOutputPath)NallaMacro.ico</ApplicationIcon>
+    <GeneratedApplicationIcon>$(MSBuildProjectDirectory)\obj\NallaMacro.ico</GeneratedApplicationIcon>
+    <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -35,7 +36,7 @@
   </ItemGroup>
 
   <Target Name="GenerateNallaMacroApplicationIcon" BeforeTargets="CoreCompile">
-    <MakeDir Directories="$(IntermediateOutputPath)" />
-    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;$b=(Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\NallaMacro.ico.b64').Trim(); [IO.File]::WriteAllBytes('$(IntermediateOutputPath)NallaMacro.ico',[Convert]::FromBase64String($b))&quot;" />
+    <MakeDir Directories="$(MSBuildProjectDirectory)\obj" />
+    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;$raw=Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\NallaMacro.ico.b64'; $b=-join ($raw -split '\s+'); [IO.File]::WriteAllBytes('$(GeneratedApplicationIcon)',[Convert]::FromBase64String($b))&quot;" />
   </Target>
 </Project>
