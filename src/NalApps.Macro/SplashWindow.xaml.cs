@@ -15,12 +15,6 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
-
-        if (IntroImage.Source is not BitmapSource bitmap || bitmap.PixelWidth <= 0 || bitmap.PixelHeight <= 0)
-        {
-            throw new InvalidOperationException("PNG 인트로 이미지를 불러오지 못했습니다.");
-        }
-
         Icon = BrandAssets.TryLoadApplicationIcon();
     }
 
@@ -49,6 +43,11 @@ public partial class SplashWindow : Window
     {
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+
+        if (!IsSplashImageReady)
+        {
+            throw new InvalidOperationException("PNG 인트로 이미지가 렌더링 준비 상태가 아닙니다.");
+        }
 
         BeginAnimation(OpacityProperty, new DoubleAnimation
         {
