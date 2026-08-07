@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using NalApps.Macro.Converters;
+using NalApps.Macro.Models;
 
 namespace NalApps.Macro.UiSmoke;
 
@@ -26,6 +27,9 @@ internal static class Program
             mainWindow.Show();
             TestMouseApplyKeepsMainWindowAlive(mainWindow);
             Console.WriteLine("[PASS] UI-003 mouse action apply keeps application alive and adds a step");
+
+            TestSelectedStepInsertionDoesNotReenter(mainWindow);
+            Console.WriteLine("[PASS] UI-004 selected-step insertion avoids ObservableCollection reentrancy and preserves order");
             return 0;
         }
         catch (Exception exception)
@@ -167,6 +171,55 @@ internal static class Program
         {
             throw new InvalidOperationException($"마우스 동작 적용 후 표시된 메인 창 수가 올바르지 않습니다: {visibleMainWindows}");
         }
+    }
+
+    private static void TestSelectedStepInsertionDoesNotReenter(MainWindow mainWindow)
+    {
+        var stepList = mainWindow.FindName("StepList") as ListBox
+            ?? throw new InvalidOperationException("메인 창의 단계 목록을 찾지 못했습니다.");
+        var insertBelow = mainWindow.FindName("InsertBelowCheck") as CheckBox
+            ?? throw new InvalidOperationException("선택 단계 아래 추가 체크박스를 찾지 못했습니다.");
+        var addStepMethod = typeof(MainWindow).GetMethod(
+            "AddStep",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new MissingMethodException(typeof(MainWindow).FullName, "AddStep");
+
+        var tailStep = new MacroStep
+        {
+            Type = MacroStepType.Delay,
+            Value = 1_000
+        };
+        addStepMethod.Invoke(mainWindow, new object[] { tailStep });
+
+        if (stepList.Items.Count != 2)
+        {
+            throw new InvalidOperationException($"삽입 테스트 준비 단계 수가 2가 아닙니다: {stepList.Items.Count}");
+        }
+
+        var selectedStep = stepList.Items[0];
+        stepList.SelectedItem = selectedStep;
+        insertBelow.IsChecked = true;
+
+        var insertedStep = new MacroStep
+        {
+            Type = MacroStepType.Delay,
+            Value = 2_000
+        };
+
+        addStepMethod.Invoke(mainWindow, new object[] { insertedStep });
+        mainWindow.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+
+        if (stepList.Items.Count != 3)
+        {
+            throw new InvalidOperationException($"선택 단계 아래 추가 후 단계 수가 3이 아닙니다: {stepList.Items.Count}");
+        }
+
+        if (!ReferenceEquals(stepList.Items[1], insertedStep))
+        {
+            throw new InvalidOperationException("새 단계가 선택한 단계 바로 아래에 배치되지 않았습니다.");
+        }
+
+        insertBelow.IsChecked = false;
     }
 
     private static T? FindVisualDescendant<T>(DependencyObject root, Func<T, bool> predicate)
