@@ -31,8 +31,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets\SplashImage.jpg.b64" LogicalName="NalApps.Macro.Assets.SplashImage.jpg.b64" />
-    <EmbeddedResource Include="Assets\NallaMacro.ico.b64" LogicalName="NalApps.Macro.Assets.NallaMacro.ico.b64" />
+    <Resource Include="Assets\SplashImage.jpg.b64" />
+    <Resource Include="Assets\NallaMacro.ico.b64" />
   </ItemGroup>
 
   <Target Name="GenerateNallaMacroApplicationIcon" BeforeTargets="CoreCompile">
