@@ -1,8 +1,6 @@
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -17,52 +15,11 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
-
-        var splashImage = LoadSplashBitmap();
-        IntroImage.Source = splashImage;
-        Background = new ImageBrush(splashImage)
-        {
-            Stretch = Stretch.Fill,
-            AlignmentX = AlignmentX.Center,
-            AlignmentY = AlignmentY.Center
-        };
-
         Icon = BrandAssets.TryLoadApplicationIcon();
     }
 
     public bool IsSplashImageReady =>
         IntroImage.Source is BitmapSource bitmap && bitmap.PixelWidth > 0 && bitmap.PixelHeight > 0;
-
-    private static BitmapSource LoadSplashBitmap()
-    {
-        var assemblyName = typeof(SplashWindow).Assembly.GetName().Name
-            ?? throw new InvalidOperationException("인트로 리소스 어셈블리 이름을 확인할 수 없습니다.");
-        var uri = new Uri(
-            $"pack://application:,,,/{assemblyName};component/Assets/SplashImage.jpg",
-            UriKind.Absolute);
-        var resource = Application.GetResourceStream(uri)
-            ?? throw new FileNotFoundException("컴파일된 인트로 이미지 리소스를 찾지 못했습니다.", uri.ToString());
-
-        using var resourceStream = resource.Stream;
-        using var memory = new MemoryStream();
-        resourceStream.CopyTo(memory);
-        memory.Position = 0;
-
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.CreateOptions = BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile;
-        bitmap.StreamSource = memory;
-        bitmap.EndInit();
-
-        if (bitmap.PixelWidth <= 0 || bitmap.PixelHeight <= 0)
-        {
-            throw new InvalidDataException($"인트로 이미지 크기가 올바르지 않습니다: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
-        }
-
-        bitmap.Freeze();
-        return bitmap;
-    }
 
     private void SplashWindow_SourceInitialized(object? sender, EventArgs e)
     {
@@ -78,7 +35,7 @@ public partial class SplashWindow : Window
         }
         catch
         {
-            // DWM rounded-corner support is cosmetic only; unsupported Windows versions continue normally.
+            // Rounded corners are cosmetic only. Unsupported Windows versions continue normally.
         }
     }
 
@@ -86,6 +43,11 @@ public partial class SplashWindow : Window
     {
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+
+        if (!IsSplashImageReady)
+        {
+            throw new InvalidOperationException("PNG 인트로 이미지가 렌더링 준비 상태가 아닙니다.");
+        }
 
         BeginAnimation(OpacityProperty, new DoubleAnimation
         {

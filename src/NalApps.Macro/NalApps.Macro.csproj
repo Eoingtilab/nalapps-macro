@@ -9,7 +9,6 @@
     <RootNamespace>NalApps.Macro</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <GeneratedApplicationIcon>$(MSBuildProjectDirectory)\obj\NallaMacro.ico</GeneratedApplicationIcon>
-    <GeneratedSplashImage>$(MSBuildProjectDirectory)\obj\SplashImage.jpg</GeneratedSplashImage>
     <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
@@ -32,12 +31,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="$(GeneratedSplashImage)" Link="Assets\SplashImage.jpg" />
+    <Resource Include="Assets\NallaMacro_Splash.png" />
     <Resource Include="Assets\NallaMacro.ico.b64" />
   </ItemGroup>
 
-  <Target Name="GenerateNallaMacroBrandAssets" BeforeTargets="BeforeBuild">
+  <Target Name="GenerateNallaMacroApplicationIcon" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(MSBuildProjectDirectory)\obj" />
-    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;$raw=Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\NallaMacro.ico.b64'; $b=-join ($raw -split '\s+'); [IO.File]::WriteAllBytes('$(GeneratedApplicationIcon)',[Convert]::FromBase64String($b)); $raw=Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\SplashImage.jpg.b64'; $b=-join ($raw -split '\s+'); $bytes=[Convert]::FromBase64String($b); if($bytes.Length -lt 4 -or $bytes[0] -ne 255 -or $bytes[1] -ne 216){throw 'SplashImage.jpg.b64 is not a valid JPEG payload'}; [IO.File]::WriteAllBytes('$(GeneratedSplashImage)',$bytes)&quot;" />
+    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;$raw=Get-Content -Raw '$(MSBuildProjectDirectory)\Assets\NallaMacro.ico.b64'; $b=-join ($raw -split '\s+'); [IO.File]::WriteAllBytes('$(GeneratedApplicationIcon)',[Convert]::FromBase64String($b))&quot;" />
   </Target>
 </Project>
