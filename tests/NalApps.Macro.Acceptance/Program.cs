@@ -281,15 +281,23 @@ internal static class Program
 
     private static void TestReleaseContracts()
     {
-        var project = File.ReadAllText(Path.Combine(Root(), "src", "NalApps.Macro", "NalApps.Macro.csproj"));
+        var root = Root();
+        var project = File.ReadAllText(Path.Combine(root, "src", "NalApps.Macro", "NalApps.Macro.csproj"));
         Contains(project, "<TargetFramework>net8.0-windows</TargetFramework>");
         Contains(project, "<PublishSingleFile>true</PublishSingleFile>");
         Contains(project, "<SelfContained>false</SelfContained>");
-        Contains(project, "<Content Include=\"Assets\\NallaMacro_Splash.png\">");
-        Contains(project, "<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>");
-        var workflow = File.ReadAllText(Path.Combine(Root(), ".github", "workflows", "build.yml"));
+        False(project.Contains("SplashWindow", StringComparison.Ordinal));
+        False(project.Contains("NallaMacro_Splash", StringComparison.Ordinal));
+        False(project.Contains("SplashScreen", StringComparison.Ordinal));
+
+        var app = File.ReadAllText(Path.Combine(root, "src", "NalApps.Macro", "App.xaml.cs"));
+        False(app.Contains("SplashWindow", StringComparison.Ordinal));
+        False(app.Contains("SplashStartup", StringComparison.Ordinal));
+
+        var workflow = File.ReadAllText(Path.Combine(root, ".github", "workflows", "build.yml"));
         Contains(workflow, "-warnaserror");
         Contains(workflow, "SHA256SUMS.txt");
+        Contains(workflow, "Splash implementation residue remains");
     }
 
     private static (MacroExecutor Executor, FakeDriver Driver, FakeDelay Delay) Fixture()
@@ -320,20 +328,35 @@ internal static class Program
     private static void NotEmpty<T>(IReadOnlyCollection<T> values) { if (values.Count == 0) throw new InvalidOperationException("expected errors"); }
     private static void Contains(string source, string value) { if (!source.Contains(value, StringComparison.Ordinal)) throw new InvalidOperationException($"missing: {value}"); }
     private static void Seq<T>(IEnumerable<T> expected, IEnumerable<T> actual) { if (!expected.SequenceEqual(actual)) throw new InvalidOperationException($"expected=[{string.Join(',', expected)}], actual=[{string.Join(',', actual)}]"); }
+
     private static void ContainsInOrder(IReadOnlyList<string> actual, params string[] expected)
     {
         int at = 0;
         foreach (var item in actual) if (at < expected.Length && item == expected[at]) at++;
         if (at != expected.Length) throw new InvalidOperationException($"sequence missing: {string.Join(" -> ", expected)}; actual={string.Join(',', actual)}");
     }
-    private static void Throws<T>(Action action) where T : Exception { try { action(); } catch (T) { return; } throw new InvalidOperationException($"expected {typeof(T).Name}"); }
-    private static async Task ThrowsAsync<T>(Func<Task> action) where T : Exception { try { await action(); } catch (T) { return; } throw new InvalidOperationException($"expected {typeof(T).Name}"); }
+
+    private static void Throws<T>(Action action) where T : Exception
+    {
+        try { action(); }
+        catch (T) { return; }
+        throw new InvalidOperationException($"expected {typeof(T).Name}");
+    }
+
+    private static async Task ThrowsAsync<T>(Func<Task> action) where T : Exception
+    {
+        try { await action(); }
+        catch (T) { return; }
+        throw new InvalidOperationException($"expected {typeof(T).Name}");
+    }
 
     private sealed class FakeDelay : IMacroDelay
     {
         private readonly Action<int, int>? _callback;
         public List<int> Durations { get; } = [];
+
         public FakeDelay(Action<int, int>? callback = null) => _callback = callback;
+
         public Task DelayAsync(int milliseconds, CancellationToken token)
         {
             Durations.Add(milliseconds);
