@@ -6,7 +6,9 @@ namespace NalApps.Macro;
 
 public partial class App : Application
 {
-    protected override async void OnStartup(StartupEventArgs e)
+    private const int MinimumSplashDisplayMilliseconds = 3_000;
+
+    protected override void OnStartup(StartupEventArgs e)
     {
         MainWindowApplyGuard.Register();
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
@@ -14,35 +16,10 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
 
-        if (e.Args.Any(arg => string.Equals(arg, "--verify-splash-resource", StringComparison.OrdinalIgnoreCase)))
-        {
-            try
-            {
-                var verificationSplash = new SplashWindow();
-                Environment.Exit(verificationSplash.IsSplashImageReady ? 0 : 2);
-            }
-            catch (Exception ex)
-            {
-                CrashReporter.Write("SplashVerification", ex);
-                Environment.Exit(3);
-            }
-
-            return;
-        }
-
-        SplashWindow? splash = null;
-        try
-        {
-            splash = new SplashWindow();
-            splash.Show();
-            await splash.PlayAsync();
-        }
-        catch (Exception ex)
-        {
-            CrashReporter.Write("SplashStartup", ex);
-            splash?.Close();
-            splash = null;
-        }
+        // The project uses WPF's native SplashScreen build action. Keeping startup
+        // briefly on the UI thread makes the native splash visible long enough to
+        // serve as an intro without maintaining a second custom Window lifecycle.
+        Thread.Sleep(MinimumSplashDisplayMilliseconds);
 
         var mainWindow = new MainWindow
         {
@@ -53,7 +30,6 @@ public partial class App : Application
 
         MainWindow = mainWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        splash?.Close();
         mainWindow.Show();
         mainWindow.Activate();
     }
