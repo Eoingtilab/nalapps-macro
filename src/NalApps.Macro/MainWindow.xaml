@@ -1,7 +1,7 @@
 <Window x:Class="NalApps.Macro.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="날라앱스 매크로"
+        Title="날라매크로"
         Width="470" Height="520"
         MinWidth="450" MinHeight="480"
         MaxWidth="620" MaxHeight="720"
@@ -28,7 +28,7 @@
                         <TextBlock Text="N" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel>
-                        <TextBlock Text="날라앱스 매크로" FontSize="15" FontWeight="Bold" />
+                        <TextBlock Text="날라매크로" FontSize="15" FontWeight="Bold" />
                         <TextBlock Text="키보드·마우스·문자·시간 동작을 순서대로 실행합니다" FontSize="9.5" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
                 </StackPanel>
@@ -130,7 +130,7 @@
                         <TextBlock x:Name="StatusText" Text="준비됨" FontSize="10" FontWeight="SemiBold" />
                         <TextBlock x:Name="ProgressText" Text="Ctrl+Alt+F8 위치 · Ctrl+Alt+F9 시작 · Ctrl+Alt+F10 일시정지 · Ctrl+Alt+F12 중지" FontSize="8.5" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
-                    <TextBlock Grid.Column="1" Text="NalaApps UI" FontSize="8.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" />
+                    <TextBlock Grid.Column="1" Text="NALLA Apps" FontSize="8.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" />
                 </Grid>
             </StackPanel>
         </Border>

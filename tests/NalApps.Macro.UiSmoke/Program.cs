@@ -12,7 +12,7 @@ internal static class Program
     [STAThread]
     private static int Main()
     {
-        Console.WriteLine("NalaApps Macro WPF UI smoke test");
+        Console.WriteLine("NallaMacro WPF UI smoke test");
 
         var application = CreateTestApplication();
         var mainWindow = new MainWindow();
@@ -49,10 +49,13 @@ internal static class Program
             Resources = new ResourceDictionary()
         };
 
+        var assemblyName = typeof(MainWindow).Assembly.GetName().Name
+            ?? throw new InvalidOperationException("애플리케이션 어셈블리 이름을 확인할 수 없습니다.");
+
         application.Resources.MergedDictionaries.Add(new ResourceDictionary
         {
             Source = new Uri(
-                "/NalaApps.Macro;component/Themes/NalaApps.DesignSystem.xaml",
+                $"/{assemblyName};component/Themes/NalaApps.DesignSystem.xaml",
                 UriKind.Relative)
         });
         application.Resources.Add(
