@@ -14,6 +14,22 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         base.OnStartup(e);
 
+        if (e.Args.Any(arg => string.Equals(arg, "--verify-splash-resource", StringComparison.OrdinalIgnoreCase)))
+        {
+            try
+            {
+                var verificationSplash = new SplashWindow();
+                Environment.Exit(verificationSplash.IsSplashImageReady ? 0 : 2);
+            }
+            catch (Exception ex)
+            {
+                CrashReporter.Write("SplashVerification", ex);
+                Environment.Exit(3);
+            }
+
+            return;
+        }
+
         SplashWindow? splash = null;
         try
         {
