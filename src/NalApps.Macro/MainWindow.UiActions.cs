@@ -68,9 +68,9 @@ public partial class MainWindow
                 e.NewItems[0] is MacroStep addedStep)
             {
                 var originalIndex = _steps.IndexOf(_editTargetStep);
-                var addedIndex = _steps.IndexOf(addedStep);
+                var editAddedIndex = _steps.IndexOf(addedStep);
 
-                if (originalIndex >= 0 && addedIndex >= 0 && !ReferenceEquals(_editTargetStep, addedStep))
+                if (originalIndex >= 0 && editAddedIndex >= 0 && !ReferenceEquals(_editTargetStep, addedStep))
                 {
                     try
                     {
@@ -108,14 +108,14 @@ public partial class MainWindow
         }
 
         var selectedIndex = _steps.IndexOf(selectedStep);
-        var addedIndex = _steps.IndexOf(newStep);
-        if (selectedIndex < 0 || addedIndex < 0 || selectedStep == newStep)
+        var newAddedIndex = _steps.IndexOf(newStep);
+        if (selectedIndex < 0 || newAddedIndex < 0 || selectedStep == newStep)
         {
             return;
         }
 
         var insertIndex = Math.Min(selectedIndex + 1, _steps.Count - 1);
-        if (addedIndex == insertIndex)
+        if (newAddedIndex == insertIndex)
         {
             return;
         }
@@ -123,7 +123,7 @@ public partial class MainWindow
         try
         {
             _insertMoveInProgress = true;
-            _steps.Move(addedIndex, insertIndex);
+            _steps.Move(newAddedIndex, insertIndex);
         }
         finally
         {
