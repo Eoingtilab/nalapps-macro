@@ -12,11 +12,11 @@
         <Border Style="{StaticResource NalaCard}" Padding="22">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="마우스 동작" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="마우스 동작" FontSize="20" FontWeight="SemiBold" />
                     <TextBlock Text="위치, 클릭 종류, 반복 횟수와 연속 실행 시간을 설정합니다."
                                Margin="0,5,0,16" FontSize="11" Foreground="{StaticResource MutedBrush}" />
 
-                    <TextBlock Text="동작 종류" Margin="0,0,0,6" FontSize="11" FontWeight="SemiBold" />
+                    <TextBlock Text="동작 종류" Margin="0,0,0,6" FontSize="11" FontWeight="Medium" />
                     <ComboBox x:Name="ActionBox" Height="38" SelectionChanged="ActionBox_SelectionChanged">
                         <ComboBoxItem Content="마우스 이동" Tag="move" />
                         <ComboBoxItem Content="왼쪽 클릭" Tag="left" IsSelected="True" />
@@ -29,7 +29,7 @@
                     <Separator Margin="0,16" />
 
                     <CheckBox x:Name="FixedPositionCheck" Content="실행 전에 지정 위치로 이동"
-                              FontWeight="SemiBold" Checked="PositionMode_Changed" Unchecked="PositionMode_Changed" />
+                              FontWeight="Medium" Checked="PositionMode_Changed" Unchecked="PositionMode_Changed" />
                     <Grid x:Name="PositionPanel" Margin="0,10,0,0" IsEnabled="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -58,7 +58,7 @@
                     <Separator Margin="0,16" />
 
                     <StackPanel x:Name="RepeatPanel">
-                        <TextBlock Text="실행 방식" Margin="0,0,0,8" FontSize="11" FontWeight="SemiBold" />
+                        <TextBlock Text="실행 방식" Margin="0,0,0,8" FontSize="11" FontWeight="Medium" />
                         <WrapPanel>
                             <RadioButton x:Name="OnceRadio" Content="한 번" IsChecked="True" GroupName="RepeatMode"
                                          Margin="0,0,18,0" Checked="RepeatMode_Changed" />

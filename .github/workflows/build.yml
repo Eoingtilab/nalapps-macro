@@ -6,6 +6,7 @@ on:
       - main
       - 'eoingtilab/**'
       - 'fix/**'
+      - 'feat/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -51,25 +52,49 @@ jobs:
       - name: Run comprehensive ISO-aligned functional acceptance tests
         run: dotnet run --project tests/NalApps.Macro.Acceptance/NalApps.Macro.Acceptance.csproj -c Release --no-build
 
-      - name: Verify release contract
+      - name: Verify release and embedded-font contract
         shell: pwsh
         run: |
           $project = Get-Content 'src/NalApps.Macro/NalApps.Macro.csproj' -Raw
+          $theme = Get-Content 'src/NalApps.Macro/Themes/NalaApps.DesignSystem.xaml' -Raw
           if ($project -notmatch '<SelfContained>false</SelfContained>') {
             throw 'Framework-dependent publish contract is not the project default.'
           }
           if ($project -match 'SplashWindow|NallaMacro_Splash|SplashScreen') {
             throw 'Splash implementation residue remains in the project contract.'
           }
+          foreach ($font in @('Pretendard-Regular.otf','Pretendard-Medium.otf','Pretendard-SemiBold.otf')) {
+            $path = Join-Path 'src/NalApps.Macro/Assets/Fonts' $font
+            if (-not (Test-Path $path)) { throw "Generated embedded font is missing: $font" }
+            if ((Get-Item $path).Length -lt 100KB) { throw "Generated embedded font is unexpectedly small: $font" }
+            if ($project -notmatch [regex]::Escape($font)) { throw "Project resource contract is missing: $font" }
+          }
+          if ($theme -notmatch 'pack://application:,,,/Assets/Fonts/#Pretendard') {
+            throw 'Design system is not using the embedded Pretendard pack URI.'
+          }
+          if ($theme -notmatch '<Setter Property="FontWeight" Value="Medium" />') {
+            throw 'Default button weight was not reduced to Medium.'
+          }
+          if ($theme -notmatch '<Setter Property="FontWeight" Value="SemiBold" />') {
+            throw 'Primary emphasis weight was not reduced to SemiBold.'
+          }
+          if (-not (Test-Path 'THIRD-PARTY-NOTICES/Pretendard-OFL.txt')) {
+            throw 'Pretendard OFL notice is missing.'
+          }
 
-      - name: Publish lightweight single-file app
+      - name: Publish font-embedded single-file app
         run: dotnet publish src/NalApps.Macro/NalApps.Macro.csproj -c Release -r win-x64 --self-contained false --no-restore -p:PublishSingleFile=true -p:DebugType=embedded -o artifacts/NallaMacro-v1.1.0-win-x64
 
-      - name: Verify published executable startup and size
+      - name: Verify published executable startup, font bundling and size
         shell: pwsh
         run: |
-          $exe = 'artifacts/NallaMacro-v1.1.0-win-x64/NallaMacro.exe'
+          $dir = 'artifacts/NallaMacro-v1.1.0-win-x64'
+          $exe = Join-Path $dir 'NallaMacro.exe'
+          $notice = Join-Path $dir 'THIRD-PARTY-NOTICES/Pretendard-OFL.txt'
           if (-not (Test-Path $exe)) { throw 'NallaMacro.exe was not created.' }
+          if (-not (Test-Path $notice)) { throw 'Pretendard license notice was not published.' }
+          $externalFonts = Get-ChildItem $dir -Recurse -File -Include '*.otf','*.ttf'
+          if ($externalFonts) { throw 'Font files leaked beside the executable instead of remaining embedded.' }
 
           $process = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 3
@@ -80,13 +105,13 @@ jobs:
           Stop-Process -Id $process.Id -Force
 
           $size = (Get-Item $exe).Length
-          $limit = 3MB
+          $limit = 8MB
           Write-Host "NallaMacro.exe size: $([Math]::Round($size / 1MB, 2)) MB"
           if ($size -gt $limit) {
-            throw "Published NallaMacro.exe exceeds 3 MB: $size bytes"
+            throw "Published NallaMacro.exe exceeds the 8 MB font-embedded limit: $size bytes"
           }
 
-      - name: Create lightweight ZIP and checksum
+      - name: Create ZIP and checksum
         shell: pwsh
         run: |
           Compress-Archive -Path artifacts/NallaMacro-v1.1.0-win-x64/* -DestinationPath artifacts/NallaMacro-v1.1.0-win-x64.zip -Force

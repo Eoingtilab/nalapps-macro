@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="EnsurePretendardFontResources">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -10,6 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <GeneratedApplicationIcon>$(MSBuildProjectDirectory)\obj\NallaMacro.ico</GeneratedApplicationIcon>
     <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
+    <PretendardFontDir>$(MSBuildProjectDirectory)\Assets\Fonts</PretendardFontDir>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -30,7 +31,19 @@
 
   <ItemGroup>
     <Resource Include="Assets\NallaMacro.ico.b64" />
+    <Resource Include="Assets\Fonts\Pretendard-Regular.otf" />
+    <Resource Include="Assets\Fonts\Pretendard-Medium.otf" />
+    <Resource Include="Assets\Fonts\Pretendard-SemiBold.otf" />
+    <Content Include="..\..\THIRD-PARTY-NOTICES\Pretendard-OFL.txt">
+      <Link>THIRD-PARTY-NOTICES\Pretendard-OFL.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
+
+  <Target Name="EnsurePretendardFontResources">
+    <Exec Command="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\ensure-pretendard.ps1&quot; -Destination &quot;$(PretendardFontDir)&quot;" />
+  </Target>
 
   <Target Name="GenerateNallaMacroApplicationIcon" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(MSBuildProjectDirectory)\obj" />

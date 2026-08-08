@@ -22,14 +22,16 @@
 
     <DropShadowEffect x:Key="CardShadow" BlurRadius="20" ShadowDepth="2" Opacity="0.08" Color="#243447" />
 
+    <FontFamily x:Key="NalaFontFamily">pack://application:,,,/Assets/Fonts/#Pretendard</FontFamily>
+
     <Style TargetType="Window">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     </Style>
 
     <Style TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
     </Style>
 
@@ -42,9 +44,9 @@
     </Style>
 
     <Style x:Key="NalaButtonBase" TargetType="Button">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Background" Value="{StaticResource SoftBrush}" />
         <Setter Property="Padding" Value="12,8" />
@@ -94,7 +96,7 @@
         <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Template" Value="{StaticResource NalaColoredButtonTemplate}" />
     </Style>
 
@@ -102,7 +104,7 @@
         <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
         <Setter Property="Background" Value="{StaticResource DangerBrush}" />
-        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="Template" Value="{StaticResource NalaColoredButtonTemplate}" />
     </Style>
@@ -115,8 +117,9 @@
     </Style>
 
     <Style TargetType="TextBox">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
         <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Padding" Value="9,7" />
         <Setter Property="MinHeight" Value="32" />
@@ -127,8 +130,9 @@
     </Style>
 
     <Style TargetType="ComboBox">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
         <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
@@ -137,7 +141,8 @@
     </Style>
 
     <Style TargetType="ListBox">
-        <Setter Property="FontFamily" Value="Pretendard, Apple SD Gothic Neo, Segoe UI" />
+        <Setter Property="FontFamily" Value="{StaticResource NalaFontFamily}" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
