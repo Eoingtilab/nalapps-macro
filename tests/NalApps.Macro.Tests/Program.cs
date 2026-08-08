@@ -11,7 +11,7 @@ internal static class Program
 
     private static async Task<int> Main()
     {
-        Console.WriteLine("NalaApps Macro v1.1.0 automated verification");
+        Console.WriteLine("NalaApps Macro v1.1.1 automated verification");
         Console.WriteLine("ISO/IEC/IEEE 29119-aligned functional and regression test harness");
         Console.WriteLine();
 
@@ -50,7 +50,7 @@ internal static class Program
         Run("MOD-001 summaries expose configured behavior", TestSummaries);
         Run("UI-001 every main action has a click handler", TestMainWindowActionContracts);
         Run("UI-002 colored button text is white", TestColoredButtonContract);
-        Run("BLD-001 product version is 1.1.0", TestProductVersion);
+        Run("BLD-001 product version is 1.1.1", TestProductVersion);
 
         Console.WriteLine();
         Console.WriteLine($"RESULT: {(_failed == 0 ? "PASS" : "FAIL")} · passed={_passed} · failed={_failed}");
@@ -470,7 +470,7 @@ internal static class Program
     {
         var root = FindRepositoryRoot();
         var project = File.ReadAllText(Path.Combine(root, "src", "NalApps.Macro", "NalApps.Macro.csproj"));
-        Contains("<Version>1.1.0</Version>", project, "Product version");
+        Contains("<Version>1.1.1</Version>", project, "Product version");
     }
 
     private static Fixture CreateFixture()
